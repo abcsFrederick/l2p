@@ -24,3 +24,11 @@ x = l2p(as.vector(genes))
 options(max.print=1000000)
 options(width=10000)
 print(x)
+
+Installation:
+R CMD INSTALL l2p_0.1-1.tar.gz
+
+Test program
+R --vanilla < test.R
+
+

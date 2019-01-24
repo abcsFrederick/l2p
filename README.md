@@ -3,8 +3,8 @@ l2p = list to pathway
 
 This an R package for "gene set enrichment".
 The interface is a function "l2p()".  The output is a data frame with the following fields ...
-
-   1  pval
+<pre>
+     1  pval
      2  fdr
      3  ratio                      if postive, genes are OVER REPRESENTED, if negative genes are UNDER REPRESENTED
      4  pathwayhitcount            number of genes hit in pathway
@@ -16,7 +16,7 @@ The interface is a function "l2p()".  The output is a data frame with the follow
     10  pathwayname                Name of pathway
     11  pathwaytype genes_space_separated   HUGO genes from user that hit the pathway
     
-    Example usage is:
+Example usage is:
     
 library(l2p)
 genes <- c( "TP53", "PTEN", "APC" )
@@ -30,5 +30,5 @@ R CMD INSTALL l2p_0.1-1.tar.gz
 
 Test program
 R --vanilla < test.R
-
+</pre>
 

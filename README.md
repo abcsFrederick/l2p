@@ -1,9 +1,10 @@
-# l2p
+# l2p program
+<pre>
 l2p = list to pathway
 
 This an R package for "gene set enrichment".
 The interface is a function "l2p()".  The output is a data frame with the following fields ...
-<pre>
+ 
      1  pval
      2  fdr
      3  ratio                      if postive, genes are OVER REPRESENTED, if negative genes are UNDER REPRESENTED

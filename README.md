@@ -27,7 +27,11 @@ options(width=10000)
 print(x)
 
 Installation:
+Download package (l2p_0.1-1.tar.gz) and run R CMD INSTALL :
 R CMD INSTALL l2p_0.1-1.tar.gz
+
+or, from inside R, run this command:
+install.packages("https://github.com/CCBR/l2p/blob/master/l2p_0.1-1.tar.gz?raw=true", repos=NULL)
 
 Test program
 R --vanilla < test.R

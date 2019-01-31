@@ -19,7 +19,7 @@ output:
     11	pathwaytype genes_space_separated   HUGO genes from user that hit the pathway
 */
 
-#ifdef R
+#if 1
 #include <R.h>
 #include <Rdefines.h>
 #endif
@@ -744,6 +744,9 @@ char* mystrcat( char* dest, char* src )
 }
  
 #ifdef USING_R
+#include <R.h>
+#include <Rdefines.h>
+
 SEXP l2p_core( int Rflag, int numingenes,char *genelist[])
 #else
 int l2p_core( int Rflag, int numingenes,char *genelist[])

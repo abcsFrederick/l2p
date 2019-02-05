@@ -976,7 +976,7 @@ fprintf(stderr,"after deal_with_universe_file\n"); fflush(stderr);
             REAL(pval)[i] = pathparallel[i].pval;
             REAL(fdr)[i] = pathparallel[i].fdr;
             REAL(ratio)[i] = pathparallel[i].ad;
-            INTEGER(numberofgenesinpathway)[i] = hitcnt;
+            INTEGER(pathwayhitcount)[i] = hitcnt;
             INTEGER(numberofgenesinpathway)[i] = (binpathptr)->numgenes;
             INTEGER(inputnumberofgenes)[i] = incnt;
             INTEGER(genesinpathwaysuniverse)[i] = numg;
@@ -1033,7 +1033,6 @@ fprintf(stderr,"after deal_with_universe_file\n"); fflush(stderr);
     }
 
 #ifdef USING_R
-printf("before Set Vector ELT 1\n"); fflush(stdout);
    SET_VECTOR_ELT(Rret, 0, pval);
    SET_VECTOR_ELT( Rret,1, fdr);
 

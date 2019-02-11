@@ -20,6 +20,10 @@ output:
 */
 
 #if 1
+#define L2P_USING_R 1
+#endif 
+
+#ifdef L2P_USING_R
 #include <R.h>
 #include <Rdefines.h>
 #endif
@@ -743,9 +747,7 @@ char* mystrcat( char* dest, char* src )
      return --dest;
 }
  
-#ifdef USING_R
-#include <R.h>
-#include <Rdefines.h>
+#ifdef L2P_USING_R
 
 SEXP l2p_core( int Rflag, int numingenes,char *genelist[])
 #else
@@ -767,7 +769,7 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
     int system_errorcode;
     int sz;
     int incnt;
-#ifdef USING_R
+#ifdef L2P_USING_R
    char *p;
    char *p2;
    int k;
@@ -876,7 +878,7 @@ fprintf(stderr,"after deal_with_universe_file\n"); fflush(stderr);
     incnt = 0;
     s[0] = (char)0;
 
-#ifdef USING_R
+#ifdef L2P_USING_R
     PROTECT(Rret = Rf_allocVector(VECSXP, 11)); // a list with 11 elements
     protect_cnt++;
     for (i=0 ; i<maxflds ; i++)
@@ -900,7 +902,7 @@ fprintf(stderr,"after deal_with_universe_file\n"); fflush(stderr);
     while ( fgets(s, sizeof(s), stdin) ) // gets() function is deprecated
 #endif
     {
-#ifdef USING_R
+#ifdef L2P_USING_R
         h.hugo = strdup(genelist[k]);
 #else
         for (i=0;s[i];i++) { if (s[i] == '\n') s[i] = (char)0; if (s[i] == '\r') s[i] = (char)0; }
@@ -972,7 +974,7 @@ fprintf(stderr,"after deal_with_universe_file\n"); fflush(stderr);
             binpathptr = &binpath[i];
             if (binpathptr->hits) hitcnt = *(unsigned int *)(binpathptr->hits);
             else hitcnt = 0;
-#ifdef USING_R
+#ifdef L2P_USING_R
             REAL(pval)[i] = pathparallel[i].pval;
             REAL(fdr)[i] = pathparallel[i].fdr;
             REAL(ratio)[i] = pathparallel[i].ad;
@@ -1032,7 +1034,7 @@ fprintf(stderr,"after deal_with_universe_file\n"); fflush(stderr);
 #endif
     }
 
-#ifdef USING_R
+#ifdef L2P_USING_R
    SET_VECTOR_ELT(Rret, 0, pval);
    SET_VECTOR_ELT( Rret,1, fdr);
 
@@ -1089,7 +1091,7 @@ printf("in l2p_core() return Rret = %p\n",Rret); fflush(stdout);
 }
 
 
-#ifdef USING_R
+#ifdef L2P_USING_R
 
 SEXP l2p(SEXP lst, SEXP fpath)
 {

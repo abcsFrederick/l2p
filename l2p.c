@@ -1,8 +1,9 @@
 
 /*
-vim l2p.c ; gcc -O3 -Wall -o l2p l2p.c -lm 
+vim l2p.c ; gcc -Ofast -Wall -o l2p l2p.c -lm 
 vim l2p.c ; gcc -O3 -march=native -flto -Wall -o l2p l2p.c -lm 
 vim l2p.c ; gcc -D_FORTIFY_SOURCE=2 -fstack-protector --param ssp-buffer-size=4 -fPIE -pie -Wl,-z,relro,-z,now -o l2p l2p.c -lm 
+vim l2p.c ; gcc -Wall -pg l2p.c -o l2p
 #vim l2p.c ; gcc -D_FORTIFY_SOURCE=2 -fstack-protector --param ssp-buffer-size=4 -fPIE -pie -Wl,-z,relro,-z,now (ld -z relro and ld -z now) -o l2p l2p.c -lm 
 
 output:
@@ -18,10 +19,6 @@ output:
     10	pathwayname                Name of pathway
     11	pathwaytype genes_space_separated   HUGO genes from user that hit the pathway
 */
-
-#if 1
-#define L2P_USING_R 1
-#endif 
 
 #ifdef L2P_USING_R
 #include <R.h>
@@ -55,6 +52,7 @@ struct binpathparallel
 static struct binpathparallel pathparallel[MAXBSID];        // uses "numbinpaths" variable as index
 
 static struct bingenetype bingene[MAXGENE];
+                           // see pathworks.h for structure :int geneid; char hugo[MAXGENENAME]; char ensembl[MAXGENENAME]; int pathcount; int pathplace;
 static int numbingenes;
 static int spacesize;
 
@@ -77,7 +75,7 @@ int cmp_ordertype_by_val_REV(const void *a, const void *b)
     return 0;
 }
 
-static int cmp_ordertype_by_val(const void *a, const void *b)
+int cmp_ordertype_by_val(const void *a, const void *b)
 {
     struct ordertype *aa;
     struct ordertype *bb;
@@ -100,7 +98,7 @@ static int cmp_ordertype_by_order(const void *a, const void *b)
     return 0;
 }
 
-static int cmp_ordertype_by_order_REV(const void *a, const void *b)
+int cmp_ordertype_by_order_REV(const void *a, const void *b)
 {
     struct ordertype *aa;
     struct ordertype *bb;
@@ -413,17 +411,18 @@ int fish_exact_test()
 
 
 static struct hugo_type *hugos;  // parallel to bingenes, defined in .h file
+static int numhugos;
 
 static int cmp_hugo(const void *a, const void *b)
 {
-    int ret;
-    struct hugo_type *aa; 
-    struct hugo_type *bb; 
-    aa = (struct hugo_type *)a;
-    bb = (struct hugo_type *)b;
+    return strcmp(((struct hugo_type *)a)->hugo, ((struct hugo_type *)b)->hugo);;
+}
 
-    ret = strcmp(aa->hugo, bb->hugo);
-    return ret;
+static int cmp_bingene(const void *a, const void *b)
+{
+    if      ( ((struct bingenetype *)a)->geneid < ((struct bingenetype *)b)->geneid ) return -1;
+    else if ( ((struct bingenetype *)a)->geneid > ((struct bingenetype *)b)->geneid ) return 1;
+    return 0;
 }
 
 static void setup_hugo_parallel_to_genebin(size_t total_array_size_in_bytes,int n)
@@ -438,6 +437,7 @@ static void setup_hugo_parallel_to_genebin(size_t total_array_size_in_bytes,int 
         (hugos+i)->generec_ptr = &bingene[i]; // from struct bingenetype bingene[MAXGENE];
         // (hugos+i)->generec_ptr = (struct bingenetype *)&bingene[i]; // from struct bingenetype bingene[MAXGENE];
     }
+    numhugos = n;
 
     qsort(hugos,n,sizeof(struct hugo_type),cmp_hugo); // rearrange by hugo name for bsearch , keep link to original genebin rec 
 #if 0
@@ -451,6 +451,32 @@ exit(0);
     return;
 }
 
+void free_hugos(void)
+{
+    int i;
+    if (hugos)
+    {
+        for (i=0;i<numhugos;i++)
+        {
+            if ((hugos+i)->hugo) free((hugos+i)->hugo);
+        }
+        free(hugos);
+    }
+    hugos = (void *)0;
+    numhugos = 0;
+    return;
+}
+
+void free_binpaths(void)
+{
+    int i;
+    for (i=0;i<numbinpaths;i++)
+    {
+        if (binpath[i].hits) free(binpath[i].hits); 
+    }
+    numbinpaths = 0;
+    return;
+}
 
 
 #if 0
@@ -583,7 +609,7 @@ static void do_exact_and_benjamini_hochberg(int numg,int incnt)
 }
 
 
-static void deal_with_universe_file(char universe_fn[],int n, int numbinpaths, int *numg_ptr, unsigned char *spaceptr) 
+static int deal_with_universe_file(char universe_fn[],int n, int numbinpaths, int *numg_ptr, unsigned char *spaceptr) 
 {
     char s[20000];
     char tmphugo[100];
@@ -591,55 +617,58 @@ static void deal_with_universe_file(char universe_fn[],int n, int numbinpaths, i
     int geneid;
     int *iptr;
     int o2g;
-    int i,j,k;
-    int incnt;
+    int i,j;
     int new_fix_gene_count;
     int errorcode;
     FILE *fp;
     struct hugo_type *hugoptr;
     struct hugo_type h;
+    struct bingenetype Xgenerec; 
+    struct bingenetype *Xgenerec_ptr; 
 
+
+fprintf(stderr,"in deal_with_universe_file\n");  fflush(stderr);
     fp = fopen (universe_fn,"r");
     errorcode = errno;
-    if (!fp) { fprintf(stderr,"Can not open user specified  \"universe\" file - %s , errno=%d\n",universe_fn,errorcode); exit(0); }
+    if (!fp) { fprintf(stderr,"Can not open user specified  \"universe\" file - %s , errno=%d\n",universe_fn,errorcode); return -1; }
 
     for (i=0;i<n;i++) hugos[i].status = 0;  // assume "guilty"
-    incnt = 0;
     while (fgets(s,20000,fp))
     {
         for (i=0;s[i];i++) { if (s[i] == '\n') s[i] = (char)0; if (s[i] == '\r') s[i] = (char)0; }
         h.hugo = strdup(s);
-        hugoptr = bsearch(&h,hugos,n,sizeof(struct hugo_type),cmp_hugo);
+        hugoptr = bsearch(&h,hugos,numbingenes,sizeof(struct hugo_type),cmp_hugo);
         if (hugoptr) hugoptr->status = 1; // "innocent"
         free(h.hugo);
-        incnt++;
     }
     fclose(fp);
 
-    for (i=0 ; i<numbinpaths ; i++) // for each path
+    for (i=0 ; i<numbinpaths ; i++) // for each pathway
     {
        new_fix_gene_count = binpath[i].numgenes;
        o2g = binpath[i].offset2geneids;
        if (o2g<=0) continue;
        iptr = (int *)(spaceptr + o2g);
-       for (j=0 ; j<binpath[i].numgenes ; j++) // for each gene for this pathway
+       for (j=0 ; j<binpath[i].numgenes ; j++)  // for each gene for this pathway
        {
            geneid = *(iptr+j);
            found = 0;
-           for (k=0;k<numbingenes;k++)
+// speed up here with bsearch !!!!!!!!!!!!!!!! ???????????
+           // memset(&Xgenerec,0,sizeof(struct bingenetype)); not needed
+           Xgenerec.geneid = geneid;
+           Xgenerec_ptr = bsearch(&Xgenerec,&bingene[0],numbingenes,sizeof(struct bingenetype),cmp_bingene);
+           if (Xgenerec_ptr)
            {
-               if (geneid == bingene[k].geneid) 
+               strcpy(tmphugo, Xgenerec_ptr->hugo);
+               h.hugo = &tmphugo[0];
+               hugoptr = bsearch(&h,hugos,numbingenes,sizeof(struct hugo_type),cmp_hugo);
+               if (hugoptr)
                {
-                  found = 1;
-                   strcpy(tmphugo, bingene[k].hugo);
-                   h.hugo = &tmphugo[0];
-                   hugoptr = bsearch(&h,hugos,n,sizeof(struct hugo_type),cmp_hugo);
-                   if (hugoptr)
+                   found = 1;
+                   if (hugoptr->status == 0) // not in universe
                    {
-                       if (hugoptr->status == 0) // not in universe
-                       {
-                           new_fix_gene_count--;
-                       }
+//                fprintf(stderr,"%s removed \n",tmphugo); fflush(stderr);  
+                       new_fix_gene_count--;
                    }
                }
            }
@@ -659,10 +688,97 @@ static void deal_with_universe_file(char universe_fn[],int n, int numbinpaths, i
     {
        if (hugos[i].status == 1) j++;
     }
-fprintf(stderr,"fixing new universe to new %d from old %d\n",j,*numg_ptr);
+fprintf(stderr,"fixing new universe to new %d from old %d\n",j,*numg_ptr); fflush(stderr);
     *numg_ptr = j;
-    return;
+    return 0;
 }
+
+#ifdef L2P_USING_R
+SEXP ulist;  // use a global  (yuck)
+
+static int R_deal_with_universe_file(SEXP lst,int n, int numbinpaths, 
+		 int *numg_ptr, unsigned char *spaceptr) 
+{
+    char s[20000];
+    char tmphugo[1024];
+    int found = 0;
+    int geneid;
+    int *iptr;
+    int o2g;
+    int i,j;
+    int new_fix_gene_count;
+    int errorcode;
+    FILE *fp;
+    struct hugo_type *hugoptr;
+    struct hugo_type h;
+    struct bingenetype Xgenerec; 
+    struct bingenetype *Xgenerec_ptr; 
+
+
+// fprintf(stderr,"in dealwithunivese R 1\n"); fflush(stderr); 
+    n = length(ulist);
+    for (i=0;i<n;i++) hugos[i].status = 0;  // assume "guilty"
+    for (i=0;i<n;i++) 
+    {
+        h.hugo = strdup(CHAR(STRING_ELT(ulist, i)));
+        hugoptr = bsearch(&h,hugos,numbingenes,sizeof(struct hugo_type),cmp_hugo);
+        if (hugoptr) hugoptr->status = 1; // "innocent"
+        free(h.hugo);
+	// xxx 
+    }
+    fclose(fp);
+
+// fprintf(stderr,"ulist len = %d\n",n); fflush(stderr); 
+
+    for (i=0 ; i<numbinpaths ; i++)         // for each pathway
+    {
+       new_fix_gene_count = binpath[i].numgenes;
+       o2g = binpath[i].offset2geneids;
+       if (o2g<=0) continue;
+       iptr = (int *)(spaceptr + o2g);
+       for (j=0 ; j<binpath[i].numgenes ; j++)  // for each gene for this pathway
+       {
+           geneid = *(iptr+j);
+           found = 0;
+           // memset(&Xgenerec,0,sizeof(struct bingenetype)); not needed
+           Xgenerec.geneid = geneid;
+           Xgenerec_ptr = bsearch(&Xgenerec,&bingene[0],numbingenes,sizeof(struct bingenetype),cmp_bingene);
+           if (Xgenerec_ptr)
+           {
+               strcpy(tmphugo, Xgenerec_ptr->hugo);
+               h.hugo = &tmphugo[0];
+               hugoptr = bsearch(&h,hugos,numbingenes,sizeof(struct hugo_type),cmp_hugo);
+               if (hugoptr)
+               {
+                   found = 1;
+                   if (hugoptr->status == 0) // not in universe
+                   {
+// fprintf(stderr,"%s removed \n",tmphugo); fflush(stderr);  
+                       new_fix_gene_count--;
+                   }
+               }
+           }
+           if (found == 0) 
+           {
+               fprintf(stderr,"Note: can not find geneid %d in deal with universe\n",geneid); 
+	       exit(0);
+           }
+       }
+       if (binpath[i].numgenes != new_fix_gene_count)
+       {
+            binpath[i].numgenes = new_fix_gene_count;
+       }
+    }
+    j = 0;
+    for (i=0 ; i<n ; i++) 
+    {
+       if (hugos[i].status == 1) j++;
+    }
+fprintf(stderr,"fixing new universe to new %d from old %d\n",j,*numg_ptr); fflush(stderr);
+    *numg_ptr = j;
+    return 0;
+}
+#endif
 
 static char fn_pathbin[PATH_MAX];
 static char fn_genesbin[PATH_MAX];
@@ -748,7 +864,6 @@ char* mystrcat( char* dest, char* src )
 }
  
 #ifdef L2P_USING_R
-
 SEXP l2p_core( int Rflag, int numingenes,char *genelist[])
 #else
 int l2p_core( int Rflag, int numingenes,char *genelist[])
@@ -828,7 +943,7 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
     if (!fp) 
     { 
         fprintf(stderr,"Can not open \"path binary data\" - %s - errno=%d\n",fn_pathbin,system_errorcode); 
-        exit(0); 
+        return 0;
     }
     fseek(fp, 0L, SEEK_END);
     sz = ftell(fp);
@@ -838,8 +953,7 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
     fclose(fp);
     fp = (FILE *)0;
 
-     
-    // setup_hits_parallel_to_pathways(sizeof(struct binpathouttype) * numbinpaths);
+// setup_hits_parallel_to_pathways(sizeof(struct binpathouttype) * numbinpaths);
 
     fp = fopen (fn_genesbin,"r");
     system_errorcode = errno;
@@ -870,9 +984,13 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
 
     if (user_universe_flag)
     {
-fprintf(stderr,"before deal_with_universe_file\n"); fflush(stderr); 
-        deal_with_universe_file(universe_file,numbingenes,numbinpaths,&numg,ucz); 
-fprintf(stderr,"after deal_with_universe_file\n"); fflush(stderr); 
+#ifdef L2P_USING_R
+        if (R_deal_with_universe_file(ulist,numbingenes,numbinpaths,&numg,ucz) != 0) 
+            return 0;
+#else
+        if (deal_with_universe_file(universe_file,numbingenes,numbinpaths,&numg,ucz) != 0) 
+            return 0;
+#endif
     }
 
     incnt = 0;
@@ -918,7 +1036,7 @@ fprintf(stderr,"after deal_with_universe_file\n"); fflush(stderr);
                  incnt++;
                  if (generec_ptr->pathplace == -1) { fprintf(stderr,"ERROR: should not get pathplace of -1 and pathcount\n");  exit(0); }
                  if (generec_ptr->pathplace == 0) { fprintf(stderr,"ERROR: should not get pathplace of 0 and pathcount\n");  exit(0); }
-                 for (i=0; i < generec_ptr->pathcount ; i++) // go through the paths for this gene, add hit to to path
+                 for (i=0; i < generec_ptr->pathcount ; i++) // go through the paths for this gene, add hit to paths
                  {
                      index = *(int *)(ucz + generec_ptr->pathplace + (i*4)); // get INDEX of record in binpath[]
                      binpathptr = &binpath[index];
@@ -1083,10 +1201,16 @@ fprintf(stderr,"after deal_with_universe_file\n"); fflush(stderr);
    for (i=0;i<numingenes;i++)
      free(genelist[i]);
    free(genelist);
+   free_hugos(); 
+   free_binpaths();
+   if (ucz) { free(ucz); ucz = (void *)0; }
 printf("in l2p_core() return Rret = %p\n",Rret); fflush(stdout);
    return Rret;
 #else
-    return 0;
+   free_hugos(); 
+   free_binpaths();
+   if (ucz) { free(ucz); ucz = (void *)0; }
+   return 0;
 #endif
 }
 
@@ -1112,21 +1236,44 @@ SEXP l2p(SEXP lst, SEXP fpath)
    {
        *(z+i) = strdup(CHAR(STRING_ELT(lst, i)));
    }
-#if 0
-   n = length(fpath);
-printf("in l2p 2.1 n=%d\n",n); fflush(stdout); 
-   t = malloc(n + 1);
-   if (t != NULL) {
-printf("in l2p 3\n"); fflush(stdout); 
-      for (i = 0; i < n; i++) {
-printf("in l2p 4\n"); fflush(stdout); 
-// printf("Returned: {%s}\n", CHAR(STRING_ELT(val, 0)));
-         t[i] = *CHAR(STRING_ELT(fpath, i));
-      }
-      t[n] = '\0';
-   }
-#endif
+  lastslash = -1;
+  for (i=0;path[i];i++)
+  {
+      if (path[i] == '/') lastslash = i;
+  }
+  if (lastslash > 0) path[lastslash] = (char)0;
 
+// hardwire for tesing strcpy(exedir,"/Users/finneyr/R/libs/l2p/extdata/");
+  strcpy(exedir,path);
+  strcat(exedir,"/");
+
+  l2p_init(1,0,(void *)0);
+  return l2p_core(1,len, z);
+}
+
+SEXP l2pu(SEXP lst, SEXP ulst, SEXP fpath)
+{
+   char path[PATH_MAX];
+   int lastslash;
+   int i,j;
+   int len;
+   SEXP tmp;
+   const char *f;
+   int n;
+   char *t;
+   char **z;
+
+// fprintf(stderr,"size of struct bingenetype=%ld\n",sizeof(struct bingenetype));
+
+   ulist = ulst;
+   user_universe_flag = 1;
+   len = length(lst);
+   strcpy(path,CHAR(STRING_ELT(fpath, 0)));
+   z = (char **)malloc(sizeof(char *)*len);
+   for (i = 0; i < len; i++) 
+   {
+       *(z+i) = strdup(CHAR(STRING_ELT(lst, i)));
+   }
   lastslash = -1;
   for (i=0;path[i];i++)
   {

@@ -24,11 +24,12 @@ struct binpathouttype     // the "binary" pathway information file
     void *hits;   // used in  l2p for user "hits" to this pathway
 };
 
+#define MAXGENENAME 34
 struct bingenetype
 {
     int geneid;
-    char hugo[34];
-    char ensembl[34];
+    char hugo[MAXGENENAME];
+    char ensembl[MAXGENENAME];
     int pathcount;   // count of paths, ids are in int array famous at "pathplace"
     int pathplace;   // index to path (to a struct binpathouttype record,see above)
 };

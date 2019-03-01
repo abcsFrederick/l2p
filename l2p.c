@@ -726,7 +726,6 @@ static int R_deal_with_universe_file(SEXP lst,int n, int numbinpaths,
         free(h.hugo);
 	// xxx 
     }
-    fclose(fp);
 
 // fprintf(stderr,"ulist len = %d\n",n); fflush(stderr); 
 

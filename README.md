@@ -40,5 +40,10 @@ Test program
 R --vanilla < test.R
 
 You can get the conda package with this command : wget https://github.com/CCBR/l2p/raw/master/r-l2p-0.0_1-r351_0.tar.bz2
+
+Two new functions:
+m2h(list)        - convert mouse to human gene symbols
+l2pu(genelist,universelist)    - l2p but with a universe file
+
 </pre>
 

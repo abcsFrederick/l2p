@@ -7,17 +7,17 @@ vim l2p.c ; gcc -Wall -pg l2p.c -o l2p
 #vim l2p.c ; gcc -D_FORTIFY_SOURCE=2 -fstack-protector --param ssp-buffer-size=4 -fPIE -pie -Wl,-z,relro,-z,now (ld -z relro and ld -z now) -o l2p l2p.c -lm 
 
 output:
-     1	pval
-     2	fdr
-     3	ratio                      if postive, genes are OVER REPRESENTED, if negative genes are UNDER REPRESENTED
-     4	pathwayhitcount            number of genes hit in pathway
-     5	numberofgenesin pathway    number of genes in the pathway
-     6	inputnumberofgenes          total count of user genes (user input)
-     7	genesinpathwaysuniverse    total number of unique genes in all pathways
-     8	pathwayaccessionidentifier canonical accession ( if availible, otherwise assigned by us )
-     9	source                     KEGG,REACTOME,GO,PANT(=PANTHER),PID=(pathway interaciton database)
-    10	pathwayname                Name of pathway
-    11	pathwaytype genes_space_separated   HUGO genes from user that hit the pathway
+     1  pval
+     2  fdr
+     3  ratio                      if postive, genes are OVER REPRESENTED, if negative genes are UNDER REPRESENTED
+     4  pathwayhitcount            number of genes hit in pathway
+     5  numberofgenesin pathway    number of genes in the pathway
+     6  inputnumberofgenes          total count of user genes (user input)
+     7  genesinpathwaysuniverse    total number of unique genes in all pathways
+     8  pathwayaccessionidentifier canonical accession ( if availible, otherwise assigned by us )
+     9  source                     KEGG,REACTOME,GO,PANT(=PANTHER),PID=(pathway interaciton database)
+    10  pathwayname                Name of pathway
+    11  pathwaytype genes_space_separated   HUGO genes from user that hit the pathway
 */
 
 #ifdef L2P_USING_R
@@ -63,7 +63,7 @@ struct ordertype
     int order;
 };
 
-int cmp_ordertype_by_val_REV(const void *a, const void *b)
+static int cmp_ordertype_by_val_REV(const void *a, const void *b)
 {
     struct ordertype *aa;
     struct ordertype *bb;
@@ -75,7 +75,9 @@ int cmp_ordertype_by_val_REV(const void *a, const void *b)
     return 0;
 }
 
-int cmp_ordertype_by_val(const void *a, const void *b)
+#if 0
+not used
+static int cmp_ordertype_by_val(const void *a, const void *b)
 {
     struct ordertype *aa;
     struct ordertype *bb;
@@ -86,6 +88,17 @@ int cmp_ordertype_by_val(const void *a, const void *b)
     // if (aa>bb) return 1; else if (aa<bb) return -1;
     return 0;
 }
+static int cmp_ordertype_by_order_REV(const void *a, const void *b)
+{
+    struct ordertype *aa;
+    struct ordertype *bb;
+    aa = (void *)a;
+    bb = (void *)b;
+    if      (aa->order <  bb->order) return 1;
+    else if (aa->order >  bb->order) return -1;
+    return 0;
+}
+#endif
 
 static int cmp_ordertype_by_order(const void *a, const void *b)
 {
@@ -98,25 +111,16 @@ static int cmp_ordertype_by_order(const void *a, const void *b)
     return 0;
 }
 
-int cmp_ordertype_by_order_REV(const void *a, const void *b)
-{
-    struct ordertype *aa;
-    struct ordertype *bb;
-    aa = (void *)a;
-    bb = (void *)b;
-    if      (aa->order <  bb->order) return 1;
-    else if (aa->order >  bb->order) return -1;
-    return 0;
-}
+
 
 static void benjaminihochberg(double pvals[],int n, double returnpvals[])
 {
 #if 0
 // here's the code from R that I re-imagined
-		   i <- lp:1L
-		   o <- order(p, decreasing = TRUE)
-		   ro <- order(o)
-		   pmin(1, cummin( n / i * p[o] ))[ro]
+                   i <- lp:1L
+                   o <- order(p, decreasing = TRUE)
+                   ro <- order(o)
+                   pmin(1, cummin( n / i * p[o] ))[ro]
 #endif
     int j,k;
     struct ordertype *i;
@@ -160,7 +164,7 @@ static void benjaminihochberg(double pvals[],int n, double returnpvals[])
     {
         (cummin+j)->val = (double)n / (double)(i+j)->order * ((po+j)->val) ;
     }
-		   // Rcode: pmin(1, cummin( n / i * p[o] ))[ro]           ******************
+                   // Rcode: pmin(1, cummin( n / i * p[o] ))[ro]           ******************
     for (j=1;j<n;j++) 
     {
         if ((cummin+j)->val > (cummin+j-1)->val) 
@@ -229,7 +233,6 @@ static double hyper_323(int n11,int n1_,int n_1,int n)
 }
 
 static int sn11,sn1_,sn_1,sn;
-
 static double sprob;
 
 static double hyper0(int n11i,int n1_i,int n_1i,int ni) 
@@ -243,15 +246,15 @@ static double hyper0(int n11i,int n1_i,int n_1i,int ni)
     {
       if(n11i==sn11+1)  
       {
-	sprob *= ((double)(sn1_-sn11)/(double)(n11i))*((double)(sn_1-sn11)/(double)(n11i+sn-sn1_-sn_1));
-	sn11 = n11i;
-	return sprob;
+        sprob *= ((double)(sn1_-sn11)/(double)(n11i))*((double)(sn_1-sn11)/(double)(n11i+sn-sn1_-sn_1));
+        sn11 = n11i;
+        return sprob;
       }
       if(n11i==sn11-1)
       {
-	sprob *= ((double)(sn11)/(double)(sn1_-n11i))*((double)(sn11+sn-sn1_-sn_1)/(double)(sn_1-n11i));
-	sn11 = n11i;
-	return sprob;
+        sprob *= ((double)(sn11)/(double)(sn1_-n11i))*((double)(sn11+sn-sn1_-sn_1)/(double)(sn_1-n11i));
+        sn11 = n11i;
+        return sprob;
       }
     }
     sn11 = n11i;
@@ -425,12 +428,12 @@ static int cmp_bingene(const void *a, const void *b)
     return 0;
 }
 
-static void setup_hugo_parallel_to_genebin(size_t total_array_size_in_bytes,int n)
+static int setup_hugo_parallel_to_genebin(size_t total_array_size_in_bytes,int n)
 {
     int i;
 
     hugos = (struct hugo_type *)malloc((size_t)total_array_size_in_bytes);
-    if (!hugos) { fprintf(stderr,"ERROR: can't malloc in setup_hugo_parallel_to_genebin...()\n"); exit(0); }
+    if (!hugos) { fprintf(stderr,"ERROR: can't malloc in setup_hugo_parallel_to_genebin...()\n"); return -5; }
     for (i=0;i<n;i++)
     {
         (hugos+i)->hugo = strdup(bingene[i].hugo);
@@ -448,10 +451,10 @@ static void setup_hugo_parallel_to_genebin(size_t total_array_size_in_bytes,int 
 exit(0);
 #endif
 
-    return;
+    return 0;
 }
 
-void free_hugos(void)
+static void free_hugos(void)
 {
     int i;
     if (hugos)
@@ -467,12 +470,16 @@ void free_hugos(void)
     return;
 }
 
-void free_binpaths(void)
+static void free_binpaths(void)
 {
     int i;
     for (i=0;i<numbinpaths;i++)
     {
-        if (binpath[i].hits) free(binpath[i].hits); 
+        if (binpath[i].hits)
+        {
+            free(binpath[i].hits); 
+            binpath[i].hits = (void *)0;
+        }
     }
     numbinpaths = 0;
     return;
@@ -544,25 +551,9 @@ static char *type2string(int type)
 }
 
 
-static void get_this_executable_path(char *puthere,int size)
-{
-    int i;
-    int lastslash = 0;
-
-    *puthere = (char)0;
-    (void)readlink("/proc/self/exe", puthere,size);
-    for (i=0;puthere[i];i++)
-        if (puthere[i] == '/') lastslash = i;
-    puthere[lastslash+1] = (char)0;
-    return;
-// readlink("/proc/curproc/file", buf, bufsize) (FreeBSD)
-// readlink("/proc/self/path/a.out", buf, bufsize) 
-// On Windows: use GetModuleFileName(NULL, buf, bufsize)
-}
-
-static int encode = 0;
-static int msig = 0;
-static int panther_only = 0;
+static int encode_flag = 0;
+static int msig_flag = 0;
+static int panther_only_flag = 0;
 
 
 static void do_exact_and_benjamini_hochberg(int numg,int incnt)
@@ -575,8 +566,11 @@ static void do_exact_and_benjamini_hochberg(int numg,int incnt)
     double *fdrs;
     int hitcnt ;
 
-    z = (double *)malloc((size_t)(sizeof (double)*numbinpaths)); if (!z) { fprintf(stderr,"ERROR: can't malloc in do_exact_and_benjamini_hochberg() 1\n"); exit(0); }
-    fdrs = (double *)malloc((size_t)(sizeof (double)*numbinpaths)); if (!fdrs) { free(z); /* clean up */ fprintf(stderr,"ERROR: can't malloc in do_exact_and_benjamini_hochberg() 2\n"); exit(0); }
+    z = (double *)malloc((size_t)(sizeof (double)*numbinpaths)); 
+    if (!z) { fprintf(stderr,"ERROR: can't malloc in do_exact_and_benjamini_hochberg() 1\n"); return; }
+
+    fdrs = (double *)malloc((size_t)(sizeof (double)*numbinpaths)); 
+    if (!fdrs) { free(z); /* clean up */ fprintf(stderr,"ERROR: can't malloc in do_exact_and_benjamini_hochberg() 2\n"); exit(0); }
     for (i=0 ; i<numbinpaths ; i++)
     {
         hitcnt = (unsigned int)0;
@@ -609,7 +603,98 @@ static void do_exact_and_benjamini_hochberg(int numg,int incnt)
 }
 
 
-static int deal_with_universe_file(char universe_fn[],int n, int numbinpaths, int *numg_ptr, unsigned char *spaceptr) 
+#ifdef L2P_USING_R
+
+static int R_deal_with_universe_list(SEXP lst, int numbingenes, int numbinpaths, 
+                 int *numg_ptr, unsigned char *spaceptr) 
+{
+    char tmphugo[1024];
+    int found = 0;
+    int geneid;
+    int *iptr;
+    int o2g;
+    int i,j;
+    int n = 0;
+    int new_fix_gene_count;
+    struct hugo_type *hugoptr;
+    struct hugo_type h;
+    struct bingenetype Xgenerec; 
+    struct bingenetype *Xgenerec_ptr; 
+
+
+//  fprintf(stderr,"in dealwithunivese R 0, lst=%p\n",lst); fflush(stderr); 
+    n = length(lst);
+//  fprintf(stderr,"in dealwithunivese R 00.01  n=%d (lenght of lst), numbingenes=%d\n",n,numbingenes); fflush(stderr); 
+    for (i=0;i<numbingenes;i++) hugos[i].status = 0;  // assume "guilty"
+//  fprintf(stderr,"in dealwithunivese R 0.1, n=%d\n",n); fflush(stderr); 
+    for (i=0;i<n;i++) 
+    {
+//  fprintf(stderr,"in dealwithunivese R 0.2lst= %p i=%d of %d \n",lst,i,n); fflush(stderr); 
+        memset(&h,0,sizeof(h));
+        h.hugo = strdup(CHAR(STRING_ELT(lst, i)));
+//  fprintf(stderr,"in dealwithunivese R 0.3 %s\n",h.hugo); fflush(stderr); 
+        hugoptr = bsearch(&h,hugos,numbingenes,sizeof(struct hugo_type),cmp_hugo);
+//  fprintf(stderr,"in dealwithunivese R 0.4\n"); fflush(stderr); 
+        if (hugoptr) hugoptr->status = 1; // "innocent"
+//  fprintf(stderr,"in dealwithunivese R 0.5\n"); fflush(stderr); 
+        free(h.hugo);
+// xxx 
+    }
+// fprintf(stderr,"in dealwithunivese R 2\n"); fflush(stderr); 
+
+// fprintf(stderr,"lst len = %d\n",n); fflush(stderr); 
+
+    for (i=0 ; i<numbinpaths ; i++)         // for each pathway
+    {
+       new_fix_gene_count = binpath[i].numgenes;
+       o2g = binpath[i].offset2geneids;
+       if (o2g<=0) continue;
+       iptr = (int *)(spaceptr + o2g);
+       for (j=0 ; j<binpath[i].numgenes ; j++)  // for each gene for this pathway
+       {
+           geneid = *(iptr+j);
+           found = 0;
+           // memset(&Xgenerec,0,sizeof(struct bingenetype)); not needed
+           Xgenerec.geneid = geneid;
+           Xgenerec_ptr = bsearch(&Xgenerec,&bingene[0],numbingenes,sizeof(struct bingenetype),cmp_bingene);
+           if (Xgenerec_ptr)
+           {
+               strcpy(tmphugo, Xgenerec_ptr->hugo);
+               h.hugo = &tmphugo[0];
+               hugoptr = bsearch(&h,hugos,numbingenes,sizeof(struct hugo_type),cmp_hugo);
+               if (hugoptr)
+               {
+                   found = 1;
+                   if (hugoptr->status == 0) // not in universe
+                   {
+// fprintf(stderr,"%s removed \n",tmphugo); fflush(stderr);  
+                       new_fix_gene_count--;
+                   }
+               }
+           }
+           if (found == 0) 
+           {
+               fprintf(stderr,"Note: can not find geneid %d in deal with universe\n",geneid); 
+               exit(0);
+           }
+       }
+       if (binpath[i].numgenes != new_fix_gene_count)
+       {
+            binpath[i].numgenes = new_fix_gene_count;
+       }
+    }
+//  fprintf(stderr,"in dealwithunivese R 3\n"); fflush(stderr); 
+    j = 0;
+    for (i=0 ; i<n ; i++) 
+    {
+       if (hugos[i].status == 1) j++;
+    }
+fprintf(stderr,"Setting new universe to new %d ( from old universe  %d  )\n",j,*numg_ptr); fflush(stderr);
+    *numg_ptr = j;
+    return 0;
+}
+#else
+static int deal_with_universe_file(char universe_fn[],int numbingenes, int numbinpaths, int *numg_ptr, unsigned char *spaceptr) 
 {
     char s[20000];
     char tmphugo[100];
@@ -627,12 +712,13 @@ static int deal_with_universe_file(char universe_fn[],int n, int numbinpaths, in
     struct bingenetype *Xgenerec_ptr; 
 
 
-fprintf(stderr,"in deal_with_universe_file\n");  fflush(stderr);
+// fprintf(stderr,"in deal_with_universe_file\n");  fflush(stderr);
     fp = fopen (universe_fn,"r");
     errorcode = errno;
     if (!fp) { fprintf(stderr,"Can not open user specified  \"universe\" file - %s , errno=%d\n",universe_fn,errorcode); return -1; }
 
-    for (i=0;i<n;i++) hugos[i].status = 0;  // assume "guilty"
+    for (i=0;i<numbingenes;i++) hugos[i].status = 0;  // assume "guilty"
+    s[0] = (char)0;
     while (fgets(s,20000,fp))
     {
         for (i=0;s[i];i++) { if (s[i] == '\n') s[i] = (char)0; if (s[i] == '\r') s[i] = (char)0; }
@@ -692,91 +778,6 @@ fprintf(stderr,"fixing new universe to new %d from old %d\n",j,*numg_ptr); fflus
     *numg_ptr = j;
     return 0;
 }
-
-#ifdef L2P_USING_R
-SEXP ulist;  // use a global  (yuck)
-
-static int R_deal_with_universe_file(SEXP lst,int n, int numbinpaths, 
-		 int *numg_ptr, unsigned char *spaceptr) 
-{
-    char s[20000];
-    char tmphugo[1024];
-    int found = 0;
-    int geneid;
-    int *iptr;
-    int o2g;
-    int i,j;
-    int new_fix_gene_count;
-    int errorcode;
-    FILE *fp;
-    struct hugo_type *hugoptr;
-    struct hugo_type h;
-    struct bingenetype Xgenerec; 
-    struct bingenetype *Xgenerec_ptr; 
-
-
-// fprintf(stderr,"in dealwithunivese R 1\n"); fflush(stderr); 
-    n = length(ulist);
-    for (i=0;i<n;i++) hugos[i].status = 0;  // assume "guilty"
-    for (i=0;i<n;i++) 
-    {
-        h.hugo = strdup(CHAR(STRING_ELT(ulist, i)));
-        hugoptr = bsearch(&h,hugos,numbingenes,sizeof(struct hugo_type),cmp_hugo);
-        if (hugoptr) hugoptr->status = 1; // "innocent"
-        free(h.hugo);
-	// xxx 
-    }
-
-// fprintf(stderr,"ulist len = %d\n",n); fflush(stderr); 
-
-    for (i=0 ; i<numbinpaths ; i++)         // for each pathway
-    {
-       new_fix_gene_count = binpath[i].numgenes;
-       o2g = binpath[i].offset2geneids;
-       if (o2g<=0) continue;
-       iptr = (int *)(spaceptr + o2g);
-       for (j=0 ; j<binpath[i].numgenes ; j++)  // for each gene for this pathway
-       {
-           geneid = *(iptr+j);
-           found = 0;
-           // memset(&Xgenerec,0,sizeof(struct bingenetype)); not needed
-           Xgenerec.geneid = geneid;
-           Xgenerec_ptr = bsearch(&Xgenerec,&bingene[0],numbingenes,sizeof(struct bingenetype),cmp_bingene);
-           if (Xgenerec_ptr)
-           {
-               strcpy(tmphugo, Xgenerec_ptr->hugo);
-               h.hugo = &tmphugo[0];
-               hugoptr = bsearch(&h,hugos,numbingenes,sizeof(struct hugo_type),cmp_hugo);
-               if (hugoptr)
-               {
-                   found = 1;
-                   if (hugoptr->status == 0) // not in universe
-                   {
-// fprintf(stderr,"%s removed \n",tmphugo); fflush(stderr);  
-                       new_fix_gene_count--;
-                   }
-               }
-           }
-           if (found == 0) 
-           {
-               fprintf(stderr,"Note: can not find geneid %d in deal with universe\n",geneid); 
-	       exit(0);
-           }
-       }
-       if (binpath[i].numgenes != new_fix_gene_count)
-       {
-            binpath[i].numgenes = new_fix_gene_count;
-       }
-    }
-    j = 0;
-    for (i=0 ; i<n ; i++) 
-    {
-       if (hugos[i].status == 1) j++;
-    }
-fprintf(stderr,"fixing new universe to new %d from old %d\n",j,*numg_ptr); fflush(stderr);
-    *numg_ptr = j;
-    return 0;
-}
 #endif
 
 static char fn_pathbin[PATH_MAX];
@@ -786,7 +787,7 @@ static char universe_file[PATH_MAX];
 static char exedir[PATH_MAX]; // executable directory 
 static int numg = 0;
 
-int l2p_init(int Rflag,int argc,char *argv[])
+static int l2p_init(int Rflag,int argc,char *argv[])
 {
     int i;
 
@@ -798,7 +799,10 @@ int l2p_init(int Rflag,int argc,char *argv[])
 
     universe_file[0] = 0;
 
-    encode = msig = 0;
+    encode_flag = 0;
+    msig_flag = 0;
+    panther_only_flag = 0;
+
     for (i=1;i<argc;i++)
     {
         if (strcmp(argv[i],"-help") == 0)
@@ -833,23 +837,23 @@ fprintf(stderr,"note: using \"%s\" as universe file\n",universe_file);
         else if (strcmp(argv[i],"enc") == 0)
         {
             fprintf(stderr,"info: encode mode\n");
-            encode = 1;
+            encode_flag = 1;
         }
         else if (strcmp(argv[i],"msig") == 0)
         {
             fprintf(stderr,"info: msig mode\n");
-            msig = 1;
+            msig_flag = 1;
         }
         else if (strcmp(argv[i],"panther") == 0)
         {
             fprintf(stderr,"info: panther only mode\n");
-            panther_only = 1;
+            panther_only_flag = 1;
         }
     }
     return 0;
 }
 
-char* mystrcat( char* dest, char* src )
+static char* mystrcat( char* dest, char* src )
 {
      int kick = 0;
      while (*dest) dest++;
@@ -863,18 +867,18 @@ char* mystrcat( char* dest, char* src )
 }
  
 #ifdef L2P_USING_R
-SEXP l2p_core( int Rflag, int numingenes,char *genelist[])
+SEXP l2p_core( int Rflag, int numingenes,char *genelist[], SEXP ulist, int msigflagarg)
 #else
-int l2p_core( int Rflag, int numingenes,char *genelist[])
+static int l2p_core( int Rflag, int numingenes,char *genelist[], int msigflagarg)
 #endif
 {
-    char s[20000];
     struct hugo_type *hugoptr;
     struct hugo_type h;
     struct bingenetype *generec_ptr; 
     struct binpathouttype *binpathptr;
     unsigned int *usintptr = (void *)0;
     unsigned char *ucz = (void *)0; // space
+    int status;
     FILE *fp;
     int j;
     int hitcnt;
@@ -883,6 +887,7 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
     int system_errorcode;
     int sz;
     int incnt;
+
 #ifdef L2P_USING_R
    char *p;
    char *p2;
@@ -904,24 +909,28 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
    SEXP nam; // R name 
    SEXP rownam; // row names
    int protect_cnt = 0;
+
+   if (msigflagarg) msig_flag = 1;
+#else
+    char s[20000];
 #endif
 
-// printf("in l2p_core Rflag=%d numgingenes=%d, genelist=%p\n",Rflag,numingenes,genelist); fflush(stdout); 
-    if (encode)
+
+    if (encode_flag)
     {
         numg = 26568;  // brave new universe
         sprintf(fn_pathbin,"%s%s",exedir,"encpath.bin");
         sprintf(fn_genesbin,"%s%s",exedir,"encgenes.bin");
         sprintf(fn_spacebin,"%s%s",exedir,"encspace.bin");
     }
-    else if (panther_only)
+    else if (panther_only_flag)
     {
         numg = 2238;
         sprintf(fn_pathbin, "%s%s",exedir,"pantherworks.bin");
         sprintf(fn_genesbin,"%s%s",exedir,"pantherworksgenes.bin");
         sprintf(fn_spacebin,"%s%s",exedir,"pantherworksspace.bin");
     }
-    else if (msig)
+    else if (msig_flag)
     {
         numg = 25785;  // brave new universe
         sprintf(fn_pathbin, "%s%s",exedir,"msigpath.bin");
@@ -942,7 +951,7 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
     if (!fp) 
     { 
         fprintf(stderr,"Can not open \"path binary data\" - %s - errno=%d\n",fn_pathbin,system_errorcode); 
-        return 0;
+        goto CORE_ERROR;
     }
     fseek(fp, 0L, SEEK_END);
     sz = ftell(fp);
@@ -966,7 +975,9 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
     fp = (FILE *)0;
 
             // -- need hugo name access, so set up a parallel array 
-    setup_hugo_parallel_to_genebin( ((size_t)(numbingenes)*sizeof(struct hugo_type)) ,numbingenes);
+    status = setup_hugo_parallel_to_genebin( ((size_t)(numbingenes)*sizeof(struct hugo_type)) ,numbingenes);
+    if (status != 0)
+        return 0;
 
 // -- for "spill over" , path and genes have pointers to variable sized data in space 
 // these are accessed by integer offset (i.e. pointers) to null terminated strings or known sized array of ints
@@ -976,7 +987,7 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
     fseek(fp, 0L, SEEK_END);
     spacesize = ftell(fp);
     rewind(fp);
-    ucz = malloc((size_t)spacesize); if (!ucz) { fprintf(stderr,"ERROR: can't malloc in l2p_core()\n"); exit(0); }
+    ucz = malloc((size_t)spacesize); if (!ucz) { fprintf(stderr,"ERROR: can't malloc in l2p_core()\n"); return 0; }
     (void)fread(ucz,spacesize,1,fp);
     fclose(fp);
     fp = (FILE *)0;
@@ -984,8 +995,10 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
     if (user_universe_flag)
     {
 #ifdef L2P_USING_R
-        if (R_deal_with_universe_file(ulist,numbingenes,numbinpaths,&numg,ucz) != 0) 
+        if (R_deal_with_universe_list(ulist,numbingenes,numbinpaths,&numg,ucz) != 0) 
+        {
             return 0;
+        }
 #else
         if (deal_with_universe_file(universe_file,numbingenes,numbinpaths,&numg,ucz) != 0) 
             return 0;
@@ -993,7 +1006,6 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
     }
 
     incnt = 0;
-    s[0] = (char)0;
 
 #ifdef L2P_USING_R
     PROTECT(Rret = Rf_allocVector(VECSXP, 11)); // a list with 11 elements
@@ -1051,7 +1063,7 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
                      {
                          usintptr = (unsigned int *)(binpathptr->hits); // point to already allocated array
                          unsigned int curcount = *usintptr;
-			 curcount = curcount + 1;
+                         curcount = curcount + 1;
                          *usintptr = (unsigned int )(curcount); 
                          *(usintptr+curcount) = (unsigned int)(generec_ptr - &bingene[0] ); // index
                      }
@@ -1069,7 +1081,7 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
                      {
                          uslongintptr = (unsigned long int *)(binpathptr->hits); // point to already allocated array
                          unsigned long int curcount = *uslongintptr;
-			 curcount = curcount + 1;
+                         curcount = curcount + 1;
                          *uslongintptr = (unsigned long int )(curcount); 
                          *(uslongintptr+curcount) = (unsigned long int)generec_ptr; // cast pointer as unsigned long int
                      }
@@ -1077,7 +1089,7 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
                 }
             }
         }
-        free(h.hugo);
+        if (h.hugo) { free(h.hugo); h.hugo = (char *)0; }
     }
 
     do_exact_and_benjamini_hochberg(numg,incnt);
@@ -1102,7 +1114,6 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
             SET_STRING_ELT(pathwayaccessionidentifier, i, mkChar((binpathptr)->accession));
             SET_STRING_ELT(source, i, mkChar((binpathptr)->source));
             SET_STRING_ELT(pathwayname, i, mkChar( (char *)(ucz+((binpathptr)->name ) ) ) );
-            SET_STRING_ELT(pathwayname, i, mkChar( (char *)(ucz+((binpathptr)->name ) ) ) );
             SET_STRING_ELT(genesinpathway, i, mkChar( type2string((binpathptr)->type)) );
 
             p2 =  malloc((hitcnt+2) * 34);  // plus some extras space 
@@ -1120,7 +1131,7 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
 // printf("%d genes = %s\n",i,p2);
             }
             SET_STRING_ELT(genesinpathway, i, mkChar( p2 ) );
-            if (p2) free(p2); p2 = (char *)0;
+            if (p2) { free(p2); p2 = (char *)0; }
 #else
             if (precise_flag == 1)
             {
@@ -1196,21 +1207,38 @@ int l2p_core( int Rflag, int numingenes,char *genelist[])
    }
    setAttrib(Rret, R_RowNamesSymbol, rownam);
 
+// CORE_END:
    UNPROTECT(protect_cnt);
    for (i=0;i<numingenes;i++)
-     free(genelist[i]);
+     if (genelist[i]) {free(genelist[i]); }
    free(genelist);
+
    free_hugos(); 
    free_binpaths();
+
    if (ucz) { free(ucz); ucz = (void *)0; }
-printf("in l2p_core() return Rret = %p\n",Rret); fflush(stdout);
+// printf("in l2p_core() return Rret = %p\n",Rret); fflush(stdout);
    return Rret;
 #else
+   for (i=0;i<numingenes;i++)
+     if (genelist[i]) {free(genelist[i]); }
+   free(genelist);
+
    free_hugos(); 
    free_binpaths();
    if (ucz) { free(ucz); ucz = (void *)0; }
    return 0;
 #endif
+
+CORE_ERROR:
+   for (i=0;i<numingenes;i++)
+     if (genelist[i]) {free(genelist[i]); }
+   free(genelist);
+
+   free_hugos(); 
+   free_binpaths();
+   if (ucz) { free(ucz); ucz = (void *)0; }
+   return 0;
 }
 
 
@@ -1220,17 +1248,20 @@ SEXP l2p(SEXP lst, SEXP fpath)
 {
    char path[PATH_MAX];
    int lastslash;
-   int i,j;
+   int i;
    int len;
-   SEXP tmp;
-   const char *f;
-   int n;
-   char *t;
    char **z;
 
+// fprintf(stderr,"in  l2p() 0 \n"); fflush(stderr); 
+
+   user_universe_flag = 0;
    len = length(lst);
-   strcpy(path,CHAR(STRING_ELT(fpath, 0)));
+   strncpy(path,CHAR(STRING_ELT(fpath, 0)),PATH_MAX-2);
    z = (char **)malloc(sizeof(char *)*len);
+   if (!z)
+   { 
+        return (SEXP) -1;
+   } 
    for (i = 0; i < len; i++) 
    {
        *(z+i) = strdup(CHAR(STRING_ELT(lst, i)));
@@ -1247,28 +1278,27 @@ SEXP l2p(SEXP lst, SEXP fpath)
   strcat(exedir,"/");
 
   l2p_init(1,0,(void *)0);
-  return l2p_core(1,len, z);
+  return l2p_core(1,len, z, (void *)0,0);
 }
 
-SEXP l2pu(SEXP lst, SEXP ulst, SEXP fpath)
+SEXP l2pmsig(SEXP lst, SEXP fpath)
 {
    char path[PATH_MAX];
    int lastslash;
-   int i,j;
+   int i;
    int len;
-   SEXP tmp;
-   const char *f;
-   int n;
-   char *t;
    char **z;
 
-// fprintf(stderr,"size of struct bingenetype=%ld\n",sizeof(struct bingenetype));
+// fprintf(stderr,"in  l2pmsig() 0 \n"); fflush(stderr); 
 
-   ulist = ulst;
-   user_universe_flag = 1;
+   user_universe_flag = 0;
    len = length(lst);
-   strcpy(path,CHAR(STRING_ELT(fpath, 0)));
+   strncpy(path,CHAR(STRING_ELT(fpath, 0)),PATH_MAX-2);
    z = (char **)malloc(sizeof(char *)*len);
+   if (!z)
+   { 
+        return (SEXP) -1;
+   } 
    for (i = 0; i < len; i++) 
    {
        *(z+i) = strdup(CHAR(STRING_ELT(lst, i)));
@@ -1285,16 +1315,125 @@ SEXP l2pu(SEXP lst, SEXP ulst, SEXP fpath)
   strcat(exedir,"/");
 
   l2p_init(1,0,(void *)0);
-  return l2p_core(1,len, z);
+  return l2p_core(1,len, z, (void *)0,1);
+}
+
+SEXP l2pu(SEXP lst, SEXP ulst, SEXP fpath )
+{
+   char path[PATH_MAX];
+   int lastslash;
+   int i;
+   int len;
+   char **z;
+
+
+   if (!lst)
+   {
+       return (SEXP)-1; 
+   }
+   if (!ulst)
+   {
+       return (SEXP)-2; 
+   }
+   user_universe_flag = 1;
+   len = length(lst);
+   strncpy(path, CHAR(STRING_ELT(fpath, 0)),PATH_MAX-2);
+   z = (char **)malloc(sizeof(char *)*len);
+   if (!z)
+   {
+       return (SEXP)-3; 
+   }
+   for (i = 0; i < len; i++) 
+   {
+       *(z+i) = strdup(CHAR(STRING_ELT(lst, i)));
+   }
+   lastslash = -1;
+   for (i=0;path[i];i++)
+   {
+      if (path[i] == '/') lastslash = i;
+   }
+   if (lastslash > 0) path[lastslash] = (char)0;
+
+   strcpy(exedir,path);
+   strcat(exedir,"/");
+
+   l2p_init(1,0,(void *)0);
+   return l2p_core(1,len, z,ulst,0);
+}
+
+
+SEXP l2pumsig(SEXP lst, SEXP ulst, SEXP fpath )
+{
+   char path[PATH_MAX];
+   int lastslash;
+   int i;
+   int len;
+   char **z;
+
+
+   if (!lst)
+   {
+       return (SEXP)-1; 
+   }
+   if (!ulst)
+   {
+       return (SEXP)-2; 
+   }
+   user_universe_flag = 1;
+   len = length(lst);
+   strncpy(path, CHAR(STRING_ELT(fpath, 0)),PATH_MAX-2);
+   z = (char **)malloc(sizeof(char *)*len);
+   if (!z)
+   {
+       return (SEXP)-3; 
+   }
+   for (i = 0; i < len; i++) 
+   {
+       *(z+i) = strdup(CHAR(STRING_ELT(lst, i)));
+   }
+   lastslash = -1;
+   for (i=0;path[i];i++)
+   {
+      if (path[i] == '/') lastslash = i;
+   }
+   if (lastslash > 0) path[lastslash] = (char)0;
+
+   strcpy(exedir,path);
+   strcat(exedir,"/");
+
+   l2p_init(1,0,(void *)0);
+   return l2p_core(1,len, z,ulst,1);
+}
+
+SEXP l2pver(void)
+{
+   printf("l2p R package, version 2\n"); 
+   return 0;
 }
 
 
 #else
-int l2p_run_for_C(int argc,char *argv[])
+static void get_this_executable_path(char *puthere,int size)
+{
+    int i;
+    int lastslash = 0;
+
+    *puthere = (char)0;
+    (void)readlink("/proc/self/exe", puthere,size);
+    for (i=0;puthere[i];i++)
+        if (puthere[i] == '/') lastslash = i;
+    puthere[lastslash+1] = (char)0;
+    return;
+// readlink("/proc/curproc/file", buf, bufsize) (FreeBSD)
+// readlink("/proc/self/path/a.out", buf, bufsize) 
+// On Windows: use GetModuleFileName(NULL, buf, bufsize)
+}
+
+static int l2p_run_for_C(int argc,char *argv[])
 {
     l2p_init(0,argc,argv);
     get_this_executable_path(exedir,PATH_MAX);
-    l2p_core(0, 0,(void *)0);
+    l2p_core(0, 0,(void *)0,0);
     return 0;
 }
 
@@ -1305,3 +1444,12 @@ int main(int argc,char *argv[])
 
 #endif
 
+
+#if 0
+export(l2p)
+export(l2pu)
+export(l2pver)
+export(l2pmsig)
+export(l2pumsig)
+export(m2h)
+#endif

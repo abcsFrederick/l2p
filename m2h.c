@@ -32,7 +32,7 @@ struct homolo_type
 };
 
 
-struct homolo_type homolos[] = 
+static struct homolo_type homolos[] = 
 {
  { 3, 9606, 34, "ACADM" } ,
  { 3, 10090, 11364, "Acadm" } ,
@@ -40380,7 +40380,12 @@ struct homolo_type homolos[] =
 3	9544	705168	ACADM	109008502	XP_001101274.1
 */
 
-void get_this_executable_path(char *puthere,int size)
+
+
+
+
+#if 0
+static void get_this_executable_path(char *puthere,int size)
 {
     int i;
     int lastslash = 0;
@@ -40395,37 +40400,6 @@ void get_this_executable_path(char *puthere,int size)
 // readlink("/proc/self/path/a.out", buf, bufsize) 
 // On Windows: use GetModuleFileName(NULL, buf, bufsize)
 }
-
-
-int compile_homologene(char infn[])
-{
-    char name[32];
-    char s[10000];
-    int id,taxid,geneid;
-    FILE *fp;
-
-    fp = fopen (infn,"r");
-
-    if (!fp) { fprintf(stderr,"ERROR: can not open %s\n",infn); fflush(stderr); return -1; }
-    s[0] = (char)0;
-    while ( fgets(s, sizeof(s), fp) ) 
-    {
-        name[0] = (char)0;
-        id = taxid = geneid = 0;
-        sscanf(s,"%d %d %d %s",&id,&taxid,&geneid,name);
-        if ((taxid == 9606) || (taxid == 10090))
-        {
-           printf(" { %d, %d, %d, \"%s\" } ,\n", id,taxid,geneid,name);
-        }
-        s[0] = (char)0;
-    }
-    fclose(fp);
-
-    return 0;
-}
-
-
-#if 0
 int load_homologene(char honologenetxtfn[])
 {
     char fn[PATH_MAX];
@@ -40473,25 +40447,18 @@ int load_homologene(char honologenetxtfn[])
 #endif
 
 
-void usage(void)
-{
-    fprintf(stderr,"Usage1 : ./m2h compile homologene.data \n"); 
-    fprintf(stderr,"Usage2 : cat genemouselist | ./m2h \n"); 
-    return;
-}
 
 #ifdef L2P_USING_R
 
 SEXP m2h(SEXP lst)
 {
-   SEXP mychar;
+    SEXP ret;
     int i,j,k;
-    int gotone = 0;
     int len;
-    char *t;
     char **z;  // input mouse gene symbols
     char **z2; // output human gene symbols
     int outcnt;
+//    int gotone = 0;
 
     len = length(lst);
     z = (char **)malloc(sizeof(char *)*len);
@@ -40504,7 +40471,7 @@ SEXP m2h(SEXP lst)
     outcnt = 0;
     for (k = 0; k < len; k++) 
     {
-        gotone = 0;
+//        gotone = 0;
         for (i=0; homolos[i].id != -1 ;i++)
         {
             if (homolos[i].taxid == 10090) // mouse 
@@ -40517,9 +40484,9 @@ SEXP m2h(SEXP lst)
                         {
                             if (homolos[j].id == homolos[i].id)
                             {
-		               *(z2+outcnt) = strdup(homolos[j].name);
+		               *(z2+outcnt) = strdup(homolos[j].name); // malloc 
 			       outcnt++;
-                               gotone = 1;
+//                               gotone = 1;
                             }
                         }
                     }
@@ -40527,17 +40494,22 @@ SEXP m2h(SEXP lst)
             }
         }
 //        if (gotone == 0) printf("%s XXXXXX\n",*(z+k));
-        free (*(z+k));
+        if (*(z+k)) { free (*(z+k)); *(z+k) = (char *)0; }
     }
-    SEXP ret;
+    if (z) { free(z); z = (void *)0; } 
     PROTECT(ret = allocVector(STRSXP, outcnt));
     for (i = 0; i < outcnt; i++) 
     {
-        SET_STRING_ELT(ret,i, mkChar(*(z2+i)));
+        if (*(z2+i)) 
+        {
+// deep in R's source code (envir.c) , mkChar does a matching PROTECT and UNPROTECT  (if unknown string)
+            SET_STRING_ELT(ret,i, mkChar(*(z2+i)));
+            free (*(z2+i));
+            *(z2+i) = (char *)0;
+        }
     }
+    if (z2) { free(z2); z2 = (void *)0; } 
     UNPROTECT(1);
-    for (i = 0; i < outcnt; i++) 
-        free (*(z2+i));
     return ret;
 
 #if 0
@@ -40550,6 +40522,39 @@ SEXP m2h(SEXP lst)
 
 
 #else
+int compile_homologene(char infn[])
+{
+    char name[32];
+    char s[10000];
+    int id,taxid,geneid;
+    FILE *fp;
+
+    fp = fopen (infn,"r");
+
+    if (!fp) { fprintf(stderr,"ERROR: can not open %s\n",infn); fflush(stderr); return -1; }
+    s[0] = (char)0;
+    while ( fgets(s, sizeof(s), fp) ) 
+    {
+        name[0] = (char)0;
+        id = taxid = geneid = 0;
+        sscanf(s,"%d %d %d %s",&id,&taxid,&geneid,name);
+        if ((taxid == 9606) || (taxid == 10090))
+        {
+           printf(" { %d, %d, %d, \"%s\" } ,\n", id,taxid,geneid,name);
+        }
+        s[0] = (char)0;
+    }
+    fclose(fp);
+
+    return 0;
+}
+
+static void usage(void)
+{
+    fprintf(stderr,"Usage1 : ./m2h compile homologene.data \n"); 
+    fprintf(stderr,"Usage2 : cat genemouselist | ./m2h \n"); 
+    return;
+}
 int main(int argc,char *argv[])
 {
     char s[10000];
@@ -40597,3 +40602,4 @@ int main(int argc,char *argv[])
 }
 
 #endif
+

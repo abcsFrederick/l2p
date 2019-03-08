@@ -2,6 +2,14 @@
 <pre>
 l2p = list to pathway
 
+Available functions:
+l2p(list)               - return a data frame with proabilities that input arg (list of genes) matches a pathway
+m2h(list)               - convert mouse to human gene symbols
+l2pu(genelist,universelist)    - l2p but with a universe file
+l2pmsig(list)           - use the MSIG (molecular signatures DB from Broad http://software.broadinstitute.org/gsea/msigdb/ )
+l2pumsig(list,universe) - use MSIG DB with a universe.
+
+
 This an R package for "gene set enrichment".
 The interface is a function "l2p()".  The output is a data frame with the following fields ...
  
@@ -34,16 +42,12 @@ R CMD INSTALL l2p_0.1-1.tar.gz
 
 or, from inside R, run this command:
 
-install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-1.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-2.tar.gz", repos=NULL) 
 
 Test program
 R --vanilla < test.R
 
-You can get the conda package with this command : wget https://github.com/CCBR/l2p/raw/master/r-l2p-0.0_1-r351_0.tar.bz2
-
-Two new functions:
-m2h(list)        - convert mouse to human gene symbols
-l2pu(genelist,universelist)    - l2p but with a universe file
+You can get the conda package with this command : wget https://github.com/CCBR/l2p/raw/master/r-l2p-0.0_2-r351_0.tar.bz2
 
 </pre>
 

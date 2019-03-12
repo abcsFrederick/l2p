@@ -35,19 +35,18 @@ options(width=10000)
 print(x)
 
 Installation:
-Download package (l2p_0.1-1.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.1-1.tar.gz
+Download package (l2p_0.1-1.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.1-3.tar.gz
 then  run R CMD INSTALL , i.e:
 
-R CMD INSTALL l2p_0.1-1.tar.gz
+R CMD INSTALL l2p_0.1-3.tar.gz
 
 or, from inside R, run this command:
 
-install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-2.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-3.tar.gz", repos=NULL) 
 
 Test program
 R --vanilla < test.R
 
-You can get the conda package with this command : wget https://github.com/CCBR/l2p/raw/master/r-l2p-0.0_2-r351_0.tar.bz2
-
+You can get the conda package with this command : wget https://github.com/CCBR/l2p/raw/master/r-l2p-0.0_3-r332_0.tar.bz2
 </pre>
 

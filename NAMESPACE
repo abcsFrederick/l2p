@@ -1,0 +1,7 @@
+useDynLib(l2p)
+export(l2p)
+export(l2pu)
+export(l2pver)
+export(l2pmsig)
+export(l2pumsig)
+export(m2h)

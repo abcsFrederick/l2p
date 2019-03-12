@@ -621,29 +621,17 @@ static int R_deal_with_universe_list(SEXP lst, int numbingenes, int numbinpaths,
     struct bingenetype Xgenerec; 
     struct bingenetype *Xgenerec_ptr; 
 
-
-//  fprintf(stderr,"in dealwithunivese R 0, lst=%p\n",lst); fflush(stderr); 
     n = length(lst);
-//  fprintf(stderr,"in dealwithunivese R 00.01  n=%d (lenght of lst), numbingenes=%d\n",n,numbingenes); fflush(stderr); 
+
     for (i=0;i<numbingenes;i++) hugos[i].status = 0;  // assume "guilty"
-//  fprintf(stderr,"in dealwithunivese R 0.1, n=%d\n",n); fflush(stderr); 
     for (i=0;i<n;i++) 
     {
-//  fprintf(stderr,"in dealwithunivese R 0.2lst= %p i=%d of %d \n",lst,i,n); fflush(stderr); 
         memset(&h,0,sizeof(h));
         h.hugo = strdup(CHAR(STRING_ELT(lst, i)));
-//  fprintf(stderr,"in dealwithunivese R 0.3 %s\n",h.hugo); fflush(stderr); 
         hugoptr = bsearch(&h,hugos,numbingenes,sizeof(struct hugo_type),cmp_hugo);
-//  fprintf(stderr,"in dealwithunivese R 0.4\n"); fflush(stderr); 
         if (hugoptr) hugoptr->status = 1; // "innocent"
-//  fprintf(stderr,"in dealwithunivese R 0.5\n"); fflush(stderr); 
         free(h.hugo);
-// xxx 
     }
-// fprintf(stderr,"in dealwithunivese R 2\n"); fflush(stderr); 
-
-// fprintf(stderr,"lst len = %d\n",n); fflush(stderr); 
-
     for (i=0 ; i<numbinpaths ; i++)         // for each pathway
     {
        new_fix_gene_count = binpath[i].numgenes;
@@ -667,7 +655,8 @@ static int R_deal_with_universe_list(SEXP lst, int numbingenes, int numbinpaths,
                    found = 1;
                    if (hugoptr->status == 0) // not in universe
                    {
-// fprintf(stderr,"%s removed \n",tmphugo); fflush(stderr);  
+// xxx 
+// fprintf(stderr,"%s removed \n",h.hugo); fflush(stderr);  
                        new_fix_gene_count--;
                    }
                }
@@ -685,11 +674,11 @@ static int R_deal_with_universe_list(SEXP lst, int numbingenes, int numbinpaths,
     }
 //  fprintf(stderr,"in dealwithunivese R 3\n"); fflush(stderr); 
     j = 0;
-    for (i=0 ; i<n ; i++) 
+    for (i=0 ; i<numbingenes ; i++) 
     {
        if (hugos[i].status == 1) j++;
     }
-fprintf(stderr,"Setting new universe to new %d ( from old universe  %d  )\n",j,*numg_ptr); fflush(stderr);
+fprintf(stderr,"Setting new universe to new %d ( from old universe  %d )n=%d\n",j,*numg_ptr,n); fflush(stderr);
     *numg_ptr = j;
     return 0;
 }
@@ -739,7 +728,6 @@ static int deal_with_universe_file(char universe_fn[],int numbingenes, int numbi
        {
            geneid = *(iptr+j);
            found = 0;
-// speed up here with bsearch !!!!!!!!!!!!!!!! ???????????
            // memset(&Xgenerec,0,sizeof(struct bingenetype)); not needed
            Xgenerec.geneid = geneid;
            Xgenerec_ptr = bsearch(&Xgenerec,&bingene[0],numbingenes,sizeof(struct bingenetype),cmp_bingene);
@@ -770,7 +758,7 @@ static int deal_with_universe_file(char universe_fn[],int numbingenes, int numbi
        }
     }
     j = 0;
-    for (i=0;i<n;i++) 
+    for (i=0;i<numbingenes;i++)
     {
        if (hugos[i].status == 1) j++;
     }
@@ -805,7 +793,7 @@ static int l2p_init(int Rflag,int argc,char *argv[])
 
     for (i=1;i<argc;i++)
     {
-        if (strcmp(argv[i],"-help") == 0)
+        if ((strcmp(argv[i],"-help") == 0) || (strcmp(argv[i],"--help") == 0))
         {
 fprintf(stderr,"l2p : \"list to pathways\" program.\n");
 fprintf(stderr,"Example Usage: cat listofHUGOgenes_one_per_line.txt | l2p [optional args]\n");
@@ -818,7 +806,7 @@ fprintf(stderr," enc                        (use encode, no dash)\n");
 fprintf(stderr," msig                       (use msig, no dash)\n");
 fprintf(stderr," panther                    (use panther, no dash)\n");
             fflush(stderr);
-            return 0;
+            exit(0);
         }
         if (strcmp(argv[i],"-precise") == 0)
         {
@@ -853,7 +841,7 @@ fprintf(stderr,"note: using \"%s\" as universe file\n",universe_file);
     return 0;
 }
 
-static char* mystrcat( char* dest, char* src )
+char* mystrcat( char* dest, char* src )
 {
      int kick = 0;
      while (*dest) dest++;
@@ -1405,11 +1393,16 @@ SEXP l2pumsig(SEXP lst, SEXP ulst, SEXP fpath )
    return l2p_core(1,len, z,ulst,1);
 }
 
-SEXP l2pver(void)
+#if 0
+SEXP l2pver() 
 {
-   printf("l2p R package, version 2\n"); 
-   return 0;
+  SEXP result = PROTECT(allocVector(REALSXP, 1));
+  double d;
+  REAL(result)[0] = asReal(2.0);
+  UNPROTECT(1);
+  return result;
 }
+#endif
 
 
 #else
@@ -1445,11 +1438,3 @@ int main(int argc,char *argv[])
 #endif
 
 
-#if 0
-export(l2p)
-export(l2pu)
-export(l2pver)
-export(l2pmsig)
-export(l2pumsig)
-export(m2h)
-#endif

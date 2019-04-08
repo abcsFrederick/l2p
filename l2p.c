@@ -1,10 +1,14 @@
 
 /*
-vim l2p.c ; gcc -Ofast -Wall -o l2p l2p.c -lm 
-vim l2p.c ; gcc -O3 -march=native -flto -Wall -o l2p l2p.c -lm 
-vim l2p.c ; gcc -D_FORTIFY_SOURCE=2 -fstack-protector --param ssp-buffer-size=4 -fPIE -pie -Wl,-z,relro,-z,now -o l2p l2p.c -lm 
+vim l2p.c ; gcc -Ofast -Wall -o l2p pathcommon.c l2p.c -lm  ; strip l2p
+vim l2p.c ; gcc -O3 -march=native -flto -Wall -o l2p l2p.c -lm
+vim l2p.c ; gcc -D_FORTIFY_SOURCE=2 -fstack-protector --param ssp-buffer-size=4 -fPIE -pie -Wl,-z,relro,-z,now -o l2p l2p.c -lm
 vim l2p.c ; gcc -Wall -pg l2p.c -o l2p
-#vim l2p.c ; gcc -D_FORTIFY_SOURCE=2 -fstack-protector --param ssp-buffer-size=4 -fPIE -pie -Wl,-z,relro,-z,now (ld -z relro and ld -z now) -o l2p l2p.c -lm 
+#vim l2p.c ; gcc -D_FORTIFY_SOURCE=2 -fstack-protector --param ssp-buffer-size=4 -fPIE -pie -Wl,-z,relro,-z,now (ld -z relro and ld -z now) -o l2p l2p.c -lm
+
+todo:
+1) fix output
+2) ensembl to
 
 output:
      1  pval
@@ -12,12 +16,23 @@ output:
      3  ratio                      if postive, genes are OVER REPRESENTED, if negative genes are UNDER REPRESENTED
      4  pathwayhitcount            number of genes hit in pathway
      5  numberofgenesin pathway    number of genes in the pathway
-     6  inputnumberofgenes          total count of user genes (user input)
+     6  inputnumberofgenes         total count of user genes (user input)
      7  genesinpathwaysuniverse    total number of unique genes in all pathways
      8  pathwayaccessionidentifier canonical accession ( if availible, otherwise assigned by us )
-     9  source                     KEGG,REACTOME,GO,PANT(=PANTHER),PID=(pathway interaciton database)
+     9  category                   KEGG,REACTOME,GO,PANT(=PANTHER),PID=(pathway interaction database)  *was "soruce"*
     10  pathwayname                Name of pathway
     11  pathwaytype genes_space_separated   HUGO genes from user that hit the pathway
+
+    run with gdb
+
+% gdb myprogram
+gdb> run params ... < input.txt
+
+    printf "TP53\nPTEN\nAPC\nKRAS\nNRAS\n"  > jokein
+    printf "TP53\nPTEN\nAPC\nKRAS\nNRAS\n"  > jokein
+    
+    gdb ./l2p
+    run  -categories=PID,KEGG < jokein
 */
 
 #ifdef L2P_USING_R
@@ -33,28 +48,40 @@ output:
 #include <math.h>
 #include <limits.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "pathworks.h"
 
-static int header_flag = 0;
-static int precise_flag = 0;
+static int catspat = 0;   // categories pattern   , if 0, use all
+static int no_header_flag = 0;
+static int precise_flag = 0; // print out more precise 
 static int user_universe_flag = 0;
+
+unsigned char *ucz = (void *)0; // space
 static struct binpathouttype binpath[MAXBSID];
 static int numbinpaths = 0;
-
-struct binpathparallel
+struct used_path_type
 {
     double pval;
     double fdr;
-    double ad;
-    double hitcnt;
+    double ad; // ratio
+    int index; // index to binpath
 };
-static struct binpathparallel pathparallel[MAXBSID];        // uses "numbinpaths" variable as index
 
-static struct bingenetype bingene[MAXGENE];
-                           // see pathworks.h for structure :int geneid; char hugo[MAXGENENAME]; char ensembl[MAXGENENAME]; int pathcount; int pathplace;
+static struct used_path_type usedpaths[MAXBSID];
+static int numusedpaths;
+
+static struct bingenetype bingene[MAXGENE];   // int geneid; char hugo[]; char ensembl[]; int pathcount; int pathplace;
 static int numbingenes;
-static int spacesize;
+static long int spacesize;
+
+static char fn_pathbin[PATH_MAX];
+static char fn_genesbin[PATH_MAX];
+static char fn_spacebin[PATH_MAX];
+static char universe_file[PATH_MAX];
+static char exedir[PATH_MAX]; // executable directory 
+static int numg = 0; // number of genes in universe  
+
 
 // -- for benjamini hochberg FDR ...
 struct ordertype
@@ -112,8 +139,9 @@ static int cmp_ordertype_by_order(const void *a, const void *b)
 }
 
 
+#define RDEBUG 0
 
-static void benjaminihochberg(double pvals[],int n, double returnpvals[])
+static void benjaminihochberg(int n,double pvals[], double returnpvals[])
 {
 #if 0
 // here's the code from R that I re-imagined
@@ -133,26 +161,35 @@ static void benjaminihochberg(double pvals[],int n, double returnpvals[])
     i = (struct ordertype *)malloc((sizeof(struct ordertype))*n);
     for (k=n,j=0;j<n;j++,k--) (i+j)->order=k;
 
+#if RDEBUG
+FILE *fp;
+fp = fopen("test.pvals","w");
+#endif
     o = (struct ordertype *)malloc((sizeof(struct ordertype))*n);
-    for (j=0;j<n;j++) 
+    for (j=0 ; j<n ; j++)
     {
+#if RDEBUG
+fprintf(fp,"%20.18f\n",pvals[j]);
+#endif
         (o+j)->val=pvals[j];
         (o+j)->order=j+1;
     }
+#if RDEBUG
+fclose(fp);
+#endif
     qsort(o,n,sizeof(struct ordertype),cmp_ordertype_by_val_REV);
 
 #if 0
     ro = (struct ordertype *)malloc((sizeof(struct ordertype))*n);
-    for (j=0;j<n;j++) 
+    for (j=0;j<n;j++)
     {
         (ro+j)->val = (double)(o+j)->order;
         (ro+j)->order = j+1;
     }
     qsort(ro,n,sizeof(struct ordertype),cmp_ordertype_by_val);
 #endif
-
     po = (struct ordertype *)malloc((sizeof(struct ordertype))*n);
-    for (j=0;j<n;j++) 
+    for (j=0;j<n;j++)
     {
         (po+j)->val = (double)pvals[j];
         (po+j)->order = (o->order); // why the hell isn't this ro? what the what?
@@ -160,38 +197,48 @@ static void benjaminihochberg(double pvals[],int n, double returnpvals[])
     qsort(po,n,sizeof(struct ordertype),cmp_ordertype_by_val_REV); // == p[o]
 
     cummin = (struct ordertype *)malloc((sizeof(struct ordertype))*n); // holds n / i * po
-    for (j=0;j<n;j++) 
+    for (j=0;j<n;j++)
     {
         (cummin+j)->val = (double)n / (double)(i+j)->order * ((po+j)->val) ;
     }
                    // Rcode: pmin(1, cummin( n / i * p[o] ))[ro]           ******************
-    for (j=1;j<n;j++) 
+    for (j=1;j<n;j++)
     {
-        if ((cummin+j)->val > (cummin+j-1)->val) 
-            (cummin+j)->val = (cummin+j-1)->val; 
+        if ((cummin+j)->val > (cummin+j-1)->val)
+            (cummin+j)->val = (cummin+j-1)->val;
     }
-    for (j=0;j<n;j++) 
+    for (j=0;j<n;j++)
     {
-        if ((cummin+j)->val > 1) 
+        if ((cummin+j)->val > 1)
             (cummin+j)->val = 1;
         (cummin+j)->order = (o+j)->order ;
     }
     qsort(cummin,n,sizeof(struct ordertype),cmp_ordertype_by_order);
+#if RDEBUG
+FILE *fp2;
+fp2 = fopen("test.fdrs","w");
+#endif
     for (j=0;j<n;j++)
+    {
         returnpvals[j] = (cummin+j)->val;
+#if RDEBUG
+fprintf(fp2,"%20.18f\n",returnpvals[j]);
+#endif
+    }
+#if RDEBUG
+fclose(fp2);
+#endif
     if (i) free(i);
     if (o) free(o);
-//    if (ro) free(ro);
     if (po) free(po);
     if (cummin) free(cummin);
-//    if (intermed) free(intermed);
 
     return;
 }
 
 
 static double lngamm(double z)
-// Reference: "Lanczos, C. 'A precision approximation 
+// Reference: "Lanczos, C. 'A precision approximation
 // of the gamma double ', J. SIAM Numer. Anal., B, 1, 86-96, 1964."
 // Translation of  Alan Miller's FORTRAN-implementation
 // See http://lib.stat.cmu.edu/apstat/245
@@ -219,9 +266,9 @@ static double lnfact(int n)
 static double lnbico(int n,int k)
 {
   double ret;
-  ret =lnfact(n)-lnfact(k)-lnfact(n-k); 
+  ret =lnfact(n)-lnfact(k)-lnfact(n-k);
 
-  return(ret); 
+  return(ret);
 }
 
 static double hyper_323(int n11,int n1_,int n_1,int n)
@@ -235,7 +282,7 @@ static double hyper_323(int n11,int n1_,int n_1,int n)
 static int sn11,sn1_,sn_1,sn;
 static double sprob;
 
-static double hyper0(int n11i,int n1_i,int n_1i,int ni) 
+static double hyper0(int n11i,int n1_i,int n_1i,int ni)
 {
 
 // printf("in hyper0 %d %d %d %d \n",n11i,n1_i,n_1i,ni);
@@ -244,7 +291,7 @@ static double hyper0(int n11i,int n1_i,int n_1i,int ni)
 //printf("in hyper0 NOT %d %d %d %d \n",n11i,n1_i,n_1i,ni);
     if(!(n11i % 10 == 0))
     {
-      if(n11i==sn11+1)  
+      if(n11i==sn11+1)
       {
         sprob *= ((double)(sn1_-sn11)/(double)(n11i))*((double)(sn_1-sn11)/(double)(n11i+sn-sn1_-sn_1));
         sn11 = n11i;
@@ -301,7 +348,7 @@ static double exact(int n11,int n1_,int n_1,int n)
   }
 
   prob=hyper0(n11,n1_,n_1,n);
-// printf("in exact prob=%20.17f \n",prob); 
+// printf("in exact prob=%20.17f \n",prob);
   sleft=0;
   p=hyper(min);
   for(i=min+1; p<0.99999999*prob; i++)
@@ -322,12 +369,12 @@ static double exact(int n11,int n1_,int n_1,int n)
   j++;
   if(p<1.00000001*prob) sright += p;
   else j++;
-  if(abs(i-n11)<abs(j-n11)) 
+  if(abs(i-n11)<abs(j-n11))
   {
     sless = sleft;
     slarg = 1 - sleft + prob;
-  } 
-  else 
+  }
+  else
   {
     sless = 1 - sright + prob;
     slarg = sright;
@@ -344,8 +391,8 @@ static double left,right,twotail;
 
 static double exact22(int n11_,int n12_,int n21_,int n22_)
 {
-  double prob = 0.0;
 #if 0
+  double prob = 0.0;
   double n11_ = parseInt("0"+n11,10);
   double n12_ = parseInt("0"+n12,10);
   double n21_ = parseInt("0"+n21,10);
@@ -359,13 +406,14 @@ static double exact22(int n11_,int n12_,int n21_,int n22_)
   if(n11_<0) n11_ *= -1;
   if(n12_<0) n12_ *= -1;
   if(n21_<0) n21_ *= -1;
-  if(n22_<0) n22_ *= -1; 
+  if(n22_<0) n22_ *= -1;
 
   int n1_ = n11_+n12_;
   int n_1 = n11_+n21_;
   int n   = n11_ +n12_ +n21_ +n22_;
 
-  prob = exact(n11_,n1_,n_1,n);
+  // prob = exact(n11_,n1_,n_1,n); don't need return value
+  ( void ) exact(n11_,n1_,n_1,n);
 // printf("prob after exact is  %30.25f\n",prob);
 
   left    = sless;
@@ -375,17 +423,17 @@ static double exact22(int n11_,int n12_,int n21_,int n22_)
   if(twotail>1) twotail=1;
 
   return twotail;
-// printf("%d %d %d %d %12.8f prob=%20.15f twotail=%20.15f\n",(int)n11_, (int)n12_, (int)n21_, (int)n22_, twotail,prob,twotail);  
+// printf("%d %d %d %d %12.8f prob=%20.15f twotail=%20.15f\n",(int)n11_, (int)n12_, (int)n21_, (int)n22_, twotail,prob,twotail);
 /*
   document.form1.output.value +=
-  newline+ 
+  newline+
   " TABLE = [ " +
   n11_+" , "+
   n12_+" , "+
   n21_+" , "+
   n22_+" ]" + newline +
   "Left   : p-value = "+ left + newline +
-  "Right  : p-value = "+ right + newline + 
+  "Right  : p-value = "+ right + newline +
   "2-Tail : p-value = "+ twotail +
   newline +   "------------------------------------------";
 */
@@ -393,11 +441,11 @@ static double exact22(int n11_,int n12_,int n21_,int n22_)
 
 
 #if 0
-test code 
+test code
 int fish_exact_test()
 {
     double d;
-// TEST fisher's exact code 
+// TEST fisher's exact code
     int n11_;double n12_;double n21_;double n22_;
 
     n11_ = 3;
@@ -428,11 +476,15 @@ static int cmp_bingene(const void *a, const void *b)
     return 0;
 }
 
-static int setup_hugo_parallel_to_genebin(size_t total_array_size_in_bytes,int n)
+
+// so we can search by hugo
+static int setup_hugo_parallel_to_genebin(int n)
 {
     int i;
+    size_t sz;
 
-    hugos = (struct hugo_type *)malloc((size_t)total_array_size_in_bytes);
+    sz = ((size_t)(n)*sizeof(struct hugo_type));
+    hugos = (struct hugo_type *)malloc(sz);
     if (!hugos) { fprintf(stderr,"ERROR: can't malloc in setup_hugo_parallel_to_genebin...()\n"); return -5; }
     for (i=0;i<n;i++)
     {
@@ -486,56 +538,6 @@ static void free_binpaths(void)
 }
 
 
-#if 0
-static void dump_hits( int index)
-{
-    struct hit_type *hitptr;
-    struct hit_type *trav;
-    int i = 0;
-
-    hitptr =(struct hit_type *)binpath[index].hits;
-    trav = hitptr;
-    while (trav->genename)
-    {
-        if (i != 0) printf(" ");
-        printf("%s",trav->genename);
-        if (trav->n == (void *)0) break;
-        trav = trav->n;
-        i++;
-    }
-    return;
-}
-
-static int cnt_hits(int index_into_array_of_struct)
-{
-    int ret = 0;
-    struct hit_type *hitptr;
-    struct hit_type *trav;
-
-    hitptr =(struct hit_type *)binpath[index_into_array_of_struct].hits;
-    if (!hitptr) return 0 ;
-    trav = hitptr;
-    while (trav->genename)
-    {
-        ret++;
-        if (trav->n == (void *)0) break;
-        trav = trav->n;
-    }
-    return ret;
-}
-
-
-static int cmp_binpath_by_bsid(const void *a, const void *b)
-{
-    struct binpathouttype *aa;
-    struct binpathouttype *bb;
-    aa = (void *)a;
-    bb = (void *)b;
-    if      (aa->bsid <  bb->bsid) return -1;
-    else if (aa->bsid >  bb->bsid) return 1;
-    return 0;
-}
-#endif
 
 static char *type2string(int type)
 {
@@ -551,53 +553,57 @@ static char *type2string(int type)
 }
 
 
-static int encode_flag = 0;
-static int msig_flag = 0;
-static int panther_only_flag = 0;
-
-
-static void do_exact_and_benjamini_hochberg(int numg,int incnt)
+static void do_pvals_and_bh(int ng,int ingenecnt)
 {
     struct binpathouttype *binpathptr;
+    int skip = 1;
     double d;
     double ad;
     int i;
-    double *z;
+    double *pvals;
     double *fdrs;
     int hitcnt ;
 
-    z = (double *)malloc((size_t)(sizeof (double)*numbinpaths)); 
-    if (!z) { fprintf(stderr,"ERROR: can't malloc in do_exact_and_benjamini_hochberg() 1\n"); return; }
+    pvals = (double *)malloc((size_t)(sizeof (double)*numbinpaths)); 
+    if (!pvals) { fprintf(stderr,"ERROR: can't malloc in do_pvals_and_bh() 1\n"); return; }
 
-    fdrs = (double *)malloc((size_t)(sizeof (double)*numbinpaths)); 
-    if (!fdrs) { free(z); /* clean up */ fprintf(stderr,"ERROR: can't malloc in do_exact_and_benjamini_hochberg() 2\n"); exit(0); }
-    for (i=0 ; i<numbinpaths ; i++)
+    for (numusedpaths=i=0 ; i<numbinpaths ; i++)
     {
         hitcnt = (unsigned int)0;
         binpathptr = &binpath[i];
+        if (binpathptr->category & catspat) skip = 0; 
+        else                                skip = 1; 
+        if (skip == 1) continue;
+
         if (binpathptr->hits)
         {
             hitcnt = *(unsigned int *)(binpathptr->hits);
             if (hitcnt > (unsigned long int)binpathptr->numgenes) 
             {
-                 fprintf(stderr,"ERROR: more hits than genes hitcnt %d > %d for %s \n", hitcnt , (binpath+i)->numgenes,(binpath+i)->accession); 
-                 fprintf(stderr,"ERROR: i=%d , path=%s,%s, current hits=%u\n", i,binpathptr->accession,binpathptr->source,hitcnt); 
+                 fprintf(stderr,"ERROR: more hits than genes (hitcnt %d > %d for %s)\n", hitcnt , (binpath+i)->numgenes,(char *)(ucz+((binpathptr)->accession ) )) ;
+                 fprintf(stderr,"details: i=%d , current hits=%u\n", i,hitcnt); 
                  fflush(stderr);
-                 exit(0); 
+                 exit(0);
             }
         }
-        d = exact22((int)hitcnt,(binpathptr)->numgenes,incnt,numg);
-        ad = ( ((double)hitcnt/ (double)(binpathptr)->numgenes) - ((double)incnt/(double)numg) );
-        pathparallel[i].pval = d;
-        pathparallel[i].ad = ad;
-        *(z+i) = d;
+// test ...
+//d = exact22(n11_,n12_,n21_,n22_); note:3 hits in p53 pathway which has  40 genes ,total 29960 genes , user input 300 genes 
+// d = exact22(3,40,297,29960);
+        d = exact22((int)hitcnt,(binpathptr)->numgenes,ingenecnt,ng);
+
+        ad = ( ((double)hitcnt/ (double)(binpathptr)->numgenes) - ((double)ingenecnt/(double)ng) );
+        *(pvals+numusedpaths) = usedpaths[numusedpaths].pval = d;
+        usedpaths[numusedpaths].ad = ad;
+        usedpaths[numusedpaths].index = i;
+        numusedpaths++;
     }
-    benjaminihochberg(z,numbinpaths,fdrs);
-    for (i=0 ; i<numbinpaths ; i++)
-    {
-         pathparallel[i].fdr = *(fdrs+i);
-    }
-    free(z);
+
+    fdrs = (double *)malloc((size_t)(sizeof (double)*numbinpaths)); 
+    if (!fdrs) { free(pvals); /* clean up */ fprintf(stderr,"ERROR: can't malloc in do_pvals_and_bh() 2\n"); exit(0); }
+    benjaminihochberg(numusedpaths,pvals,fdrs);
+    for (i=0 ; i<numusedpaths ; i++)
+         usedpaths[i].fdr = *(fdrs+i);
+    free(pvals); // path parallel
     free(fdrs);
     return;
 }
@@ -609,6 +615,8 @@ static int R_deal_with_universe_list(SEXP lst, int numbingenes, int numbinpaths,
                  int *numg_ptr, unsigned char *spaceptr) 
 {
     char tmphugo[1024];
+    struct hugo_type *hugoptr;
+    struct hugo_type h;
     int found = 0;
     int geneid;
     int *iptr;
@@ -616,13 +624,12 @@ static int R_deal_with_universe_list(SEXP lst, int numbingenes, int numbinpaths,
     int i,j;
     int n = 0;
     int new_fix_gene_count;
-    struct hugo_type *hugoptr;
-    struct hugo_type h;
     struct bingenetype Xgenerec; 
     struct bingenetype *Xgenerec_ptr; 
 
     n = length(lst);
 
+//     fprintf(stderr,"rpf in R_deal_with_universe_list\n"); fflush(NULL); 
     for (i=0;i<numbingenes;i++) hugos[i].status = 0;  // assume "guilty"
     for (i=0;i<n;i++) 
     {
@@ -655,7 +662,6 @@ static int R_deal_with_universe_list(SEXP lst, int numbingenes, int numbinpaths,
                    found = 1;
                    if (hugoptr->status == 0) // not in universe
                    {
-// xxx 
 // fprintf(stderr,"%s removed \n",h.hugo); fflush(stderr);  
                        new_fix_gene_count--;
                    }
@@ -668,9 +674,7 @@ static int R_deal_with_universe_list(SEXP lst, int numbingenes, int numbinpaths,
            }
        }
        if (binpath[i].numgenes != new_fix_gene_count)
-       {
             binpath[i].numgenes = new_fix_gene_count;
-       }
     }
 //  fprintf(stderr,"in dealwithunivese R 3\n"); fflush(stderr); 
     j = 0;
@@ -678,11 +682,13 @@ static int R_deal_with_universe_list(SEXP lst, int numbingenes, int numbinpaths,
     {
        if (hugos[i].status == 1) j++;
     }
-fprintf(stderr,"Setting new universe to new %d ( from old universe  %d )n=%d\n",j,*numg_ptr,n); fflush(stderr);
+// fprintf(stderr,"Setting new universe to new %d ( from old universe  %d )n=%d\n",j,*numg_ptr,n); fflush(stderr);
     *numg_ptr = j;
     return 0;
 }
+ 
 #else
+ // raw C version ..
 static int deal_with_universe_file(char universe_fn[],int numbingenes, int numbinpaths, int *numg_ptr, unsigned char *spaceptr) 
 {
     char s[20000];
@@ -701,7 +707,6 @@ static int deal_with_universe_file(char universe_fn[],int numbingenes, int numbi
     struct bingenetype *Xgenerec_ptr; 
 
 
-// fprintf(stderr,"in deal_with_universe_file\n");  fflush(stderr);
     fp = fopen (universe_fn,"r");
     errorcode = errno;
     if (!fp) { fprintf(stderr,"Can not open user specified  \"universe\" file - %s , errno=%d\n",universe_fn,errorcode); return -1; }
@@ -753,9 +758,7 @@ static int deal_with_universe_file(char universe_fn[],int numbingenes, int numbi
            }
        }
        if (binpath[i].numgenes != new_fix_gene_count)
-       {
             binpath[i].numgenes  = new_fix_gene_count;
-       }
     }
     j = 0;
     for (i=0;i<numbingenes;i++)
@@ -768,76 +771,159 @@ fprintf(stderr,"fixing new universe to new %d from old %d\n",j,*numg_ptr); fflus
 }
 #endif
 
-static char fn_pathbin[PATH_MAX];
-static char fn_genesbin[PATH_MAX];
-static char fn_spacebin[PATH_MAX];
-static char universe_file[PATH_MAX];
-static char exedir[PATH_MAX]; // executable directory 
-static int numg = 0;
-
-static int l2p_init(int Rflag,int argc,char *argv[])
+void usage(void)
 {
-    int i;
-
-// old: ingenes = 35058358, binpathrecsize=72 , genrecsize=80 numbsids=53772 numgenes=60094, hitgenes=19670 outpathreccnt=18418
-
-    numg = 19657;  // universe , get withe "cat pathworks.txt | cut -f10 | tr " " "\n" | sort | uniq"
-
-// no!  numg = numbingenes;   no? why?
-
-    universe_file[0] = 0;
-
-    encode_flag = 0;
-    msig_flag = 0;
-    panther_only_flag = 0;
-
-    for (i=1;i<argc;i++)
-    {
-        if ((strcmp(argv[i],"-help") == 0) || (strcmp(argv[i],"--help") == 0))
-        {
 fprintf(stderr,"l2p : \"list to pathways\" program.\n");
-fprintf(stderr,"Example Usage: cat listofHUGOgenes_one_per_line.txt | l2p [optional args]\n");
+fprintf(stderr,"Usage: cat listofHUGOgenes_one_per_line.txt | l2p [optional args]\n");
 fprintf(stderr,"possible optional args are ...\n");
 fprintf(stderr," -help\n");
 fprintf(stderr," -precise\n");
-fprintf(stderr," -header\n");
-fprintf(stderr," -universe=Universefile.txt\n");
-fprintf(stderr," enc                        (use encode, no dash)\n");
-fprintf(stderr," msig                       (use msig, no dash)\n");
-fprintf(stderr," panther                    (use panther, no dash)\n");
-            fflush(stderr);
+fprintf(stderr," -noheader\n");
+fprintf(stderr," -universe=Universefile_one_gene_per_line.txt\n");
+fprintf(stderr," -categories=listofcatgories  (comma separated)\n");
+fprintf(stderr,"    example: -categories=KEGG,REACTOME,BIOCYC,PANTH  (i.e. only use genes in those 4 categories\n");
+fprintf(stderr,"    another -categories example: \"-categories=H,C6\"  (i.e. only use msig's Hallmark and C6 (cancer) category pathways\n");
+fprintf(stderr,"    available categories are :\n");
+fprintf(stderr,"    BIOCYC  - organism specific Pathway/ Genome Databases (PGDBs)  - https://biocyc.org/\n");
+fprintf(stderr,"    GO  - initiative to unify representation of gene and gene product attributes -  http://geneontology.org\n");
+fprintf(stderr,"    KEGG - databases dealing with genomes, biological pathways, - https://www.kegg.jp/\n");
+fprintf(stderr,"    PANTH - databases for protein analysis through evolutionary relationships - http://www.pantherdb.org/\n");
+fprintf(stderr,"    PID  - Pathway interaction database: legacy database from Carl Schaefer & buddies at NCI\n");
+fprintf(stderr,"    REACTOME - curated database of biological pathways - https://reactome.org/\n");
+fprintf(stderr,"    WikiPathways - community resource for biological pathways - https://www.wikipathways.org\n");
+fprintf(stderr,"    C1 - MSigDB only, positional gene sets for each human chromosome and cytogenetic band.\n");
+fprintf(stderr,"    C2 - MSigDB only, curated gene sets from online pathway databases, publications in PubMed, and experts.\n");
+fprintf(stderr,"    C3 - MSigDB only, motif gene sets based on conserved cis-regulatory motifs from comparative analysis\n");
+fprintf(stderr,"    C4 - MSigDB only, computational gene sets defined by mining large collections of cancer-oriented microarray data.\n");
+fprintf(stderr,"    C5 - MSigDB only, gene sets  consist of genes annotated by the same GO terms.\n");
+fprintf(stderr,"    C6 - MSigDB only, oncogenic gene sets defined directly from microarray data from cancer gene perturbations.\n");
+fprintf(stderr,"    C7 - MSigDB only, immunologic gene sets  from microarray data from immunologic studies.\n");
+fprintf(stderr,"    H - MSigDB only, hallmark gene sets: signatures from MSigDB gene sets to represent biological processes.\n");
+fprintf(stderr,"Example run : printf \"TP53\\nPTEN\\nAPC\\nKRAS\\nNRAS\\n\" | ./l2p -categories=PID | sort -k2,2n -k1,1n -k3,3nr | head\n");
+            fflush(NULL);
+}
+
+void int2bin(int n, char s[]) 
+{
+    int i;
+    for (i=0;i<40;i++) s[0] = (char)0;
+    // determine the number of bits needed ("sizeof" returns bytes)
+    int nbits = sizeof(n) * 8;
+    // forcing evaluation as an unsigned value prevents complications
+    // with negative numbers at the left-most bit
+    unsigned int u = *(unsigned int*)&n;
+    unsigned int mask = 1 << (nbits-1); // fill in values right-to-left
+    for (i = 0; i < nbits; i++, mask >>= 1)
+    {
+            s[i] = ((u & mask) != 0) + '0';
+            s[i+1] =  (char)0;
+    }
+    return;
+}
+
+int bitCount(int n) 
+{
+    int cnt = 0;
+    while (n) 
+    {
+        cnt += n % 2;
+        n >>= 1;
+    }
+    return cnt;
+}
+
+static int parsecats(char *z)
+{
+    char ts[16][16];
+    int bit;
+    int j,k;
+    int toks;
+
+    for (j=0 ; *(z+j) ; j++)
+    {
+        if (*(z+j) == ',') *(z+j) = ' ';
+    }
+    memset(ts,0,sizeof(ts));
+    toks = sscanf(z,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s ",
+          ts[0], ts[1], ts[2], ts[3], ts[4], ts[5], ts[6], ts[7], ts[8], ts[9],
+          ts[10], ts[11], ts[12], ts[13], ts[14], ts[15]);
+    for (k=0;k<toks;k++)
+    {
+        bit=string_to_category_code(ts[k]);
+        if (bit)
+            catspat |= bit;
+        else
+        {
+            fprintf(stderr,"ERROR: invalid category = %s\n",ts[k]);
+            usage();
             exit(0);
         }
+    }
+    j = bitCount(catspat) ;
+    if (j == 0)
+    {
+#ifdef L2P_USING_R
+        return 0;
+#else
+        fprintf(stderr,"ERROR: no categories specified\n");
+        usage();
+        return -1;
+#endif
+    }
+    return 0;
+}
+
+int l2p_init_C(int Rflag,int argc,char *argv[])
+{
+    char *z;
+    int i;
+
+    universe_file[0] = 0;
+    for (i=1 ; i<argc ; i++)
+    {
+        if ((strcmp(argv[i],"-help") == 0) || (strcmp(argv[i],"--help") == 0) || ((strcmp(argv[i],"help") == 0) ) )
+        {
+             usage();
+             exit(1);
+        }
+        if (strncmp(argv[i],"-categories=",12) == 0)
+        {
+            z = argv[i], 
+            z += 12;
+            parsecats(z);
+        }
         if (strcmp(argv[i],"-precise") == 0)
-        {
-              precise_flag = 1;
-        }
-        if (strcmp(argv[i],"-header") == 0)
-        {
-              header_flag = 1;
-        }
+              precise_flag = 1; // print more digits out some user doesn't complain about "real pvals"
+        if (strcmp(argv[i],"-noheader") == 0)
+              no_header_flag = 1;
         if (strncmp(argv[i],"-universe=",10) == 0)
         {
             strcpy(universe_file,argv[i] + 10);
             user_universe_flag = 1;
 fprintf(stderr,"note: using \"%s\" as universe file\n",universe_file);
         }
+/*
         else if (strcmp(argv[i],"enc") == 0)
         {
             fprintf(stderr,"info: encode mode\n");
-            encode_flag = 1;
+            // encode_flag = 1;
         }
-        else if (strcmp(argv[i],"msig") == 0)
-        {
-            fprintf(stderr,"info: msig mode\n");
-            msig_flag = 1;
-        }
-        else if (strcmp(argv[i],"panther") == 0)
-        {
-            fprintf(stderr,"info: panther only mode\n");
-            panther_only_flag = 1;
-        }
-    }
+*/
+    } 
+    if (catspat == 0) category_set_all(&catspat);
+    return 0;
+}
+
+int l2p_init_R()
+{
+    char s[100];
+
+//   fprintf(stderr,"in l2p_init_R\n"); fflush(NULL);
+    int2bin(catspat,s);
+//fprintf(stderr,"rpf in l2p_init_R , in catspat=%d=0x%x %s\n",catspat,catspat,s);  fflush(NULL);
+    universe_file[0] = 0;
+    if (catspat == 0) category_set_all(&catspat);
+
     return 0;
 }
 
@@ -854,27 +940,116 @@ char* mystrcat( char* dest, char* src )
      return --dest;
 }
  
+int load_bin_dat(void)
+{
+    FILE *fp;
+    int system_errorcode;
+    int i,j;
+    long int li;
+    size_t sz;
+
+    sprintf(fn_pathbin,"%s%s",exedir, "pathworks.bin");
+    sprintf(fn_genesbin,"%s%s",exedir,"pathworksgenes.bin");
+    sprintf(fn_spacebin,"%s%s",exedir,"pathworksspace.bin");
+
+    fp = fopen (fn_pathbin,"r");
+    system_errorcode = errno;
+    if (!fp) 
+    { 
+        fprintf(stderr,"Can not open \"path binary data\" - %s - errno=%d\n",fn_pathbin,system_errorcode);  fflush(NULL);
+        goto LOAD_ERROR;
+    }
+    fseek(fp, 0L, SEEK_END);
+    li = ftell(fp);
+    numbinpaths = li / sizeof(struct binpathouttype);
+    rewind(fp);
+    for (j=i=0;i<numbinpaths;i++)
+    {
+        sz = fread(&binpath[i],sizeof(struct binpathouttype),1,fp);
+        if (sz != 1) {fprintf(stderr,"ERROR reading %dth record of %s sz=%zu recsize=%zu\n",j,fn_pathbin,sz,sizeof(struct binpathouttype)); fflush(NULL); exit(0); }
+        if (catspat & binpath[i].category)
+           j++;
+        else 
+        {
+/*
+char ss1[100];
+char ss2[100];
+int2bin(catspat,ss1);
+int2bin(binpath[i].category,ss2);
+catspat,ss1,i,binpath[i].category,binpath[i].category,ss2); 
+*/
+        }
+    }
+    numusedpaths= j;
+    fclose(fp);
+    fp = (FILE *)0;
+// fprintf(stderr,"rpf in l2p_core numusedpaths=%d , numbinpaths=%d \n",numusedpaths,numbinpaths); fflush(stderr);
+
+    fp = fopen (fn_genesbin,"r");
+    system_errorcode = errno;
+    if (!fp) { fprintf(stderr,"Can not open \"genes data\". filename: %s, errno=%d\n",fn_genesbin,system_errorcode); exit(0); }
+    fseek(fp, 0L, SEEK_END);
+    li = ftell(fp);
+    numbingenes = (int)(li / sizeof(struct bingenetype));
+// fprintf(stderr,"rpf in l2p_core numbingenes=%d \n",numbingenes); fflush(stderr);
+    rewind(fp);
+    numg = 0;
+    for (i=0 ; ((i<numbingenes)&&(i<MAXGENE)) ; i++)
+    {
+        sz = fread(&bingene[i],sizeof(struct bingenetype),1,fp);
+        system_errorcode = errno;
+        if (sz != 1) {fprintf(stderr,"ERROR reading genes at %dth record of \"%s\". errno=%d\n",i,fn_genesbin,system_errorcode); fflush(NULL); exit(0); }
+        if (catspat == 0) numg++;
+        else if (catspat & bingene[i].categories) numg++;
+    }
+    fclose(fp);
+    fp = (FILE *)0;
+
+
+// -- for "spill over" , path and genes have some fields which are pointers (actually offsets!) to variable sized data in space
+// these are accessed by integer offset (i.e. pointers) to null terminated strings or known sized array of ints
+    fp = fopen (fn_spacebin,"r");
+    system_errorcode = errno;
+    if (!fp) { fprintf(stderr,"Can not open \"path space data\" - %s - errno=%d\n",fn_spacebin,system_errorcode); exit(0); }
+    fseek(fp, 0L, SEEK_END);
+    spacesize = ftell(fp);
+    rewind(fp);
+    ucz = malloc((size_t)spacesize); if (!ucz) { fprintf(stderr,"ERROR: can't malloc in space for \"spill\" data\n"); return 0; }
+    sz = fread(ucz,spacesize,1,fp);
+    if (sz != 1) {fprintf(stderr,"ERROR reading \"spill space\" file %s\n",fn_spacebin); fflush(NULL); exit(0); }
+    fclose(fp);
+    fp = (FILE *)0;
+
+    return 0;
+LOAD_ERROR:
+    if (ucz) { free(ucz); ucz = (unsigned char *)0; }
+    return -1;
+}
+
+
+
 #ifdef L2P_USING_R
 SEXP l2p_core( int Rflag, int numingenes,char *genelist[], SEXP ulist, int msigflagarg)
 #else
 static int l2p_core( int Rflag, int numingenes,char *genelist[], int msigflagarg)
 #endif
 {
+    char tmps_cat[40]; // temp string for "category" 
     struct hugo_type *hugoptr;
     struct hugo_type h;
     struct bingenetype *generec_ptr; 
     struct binpathouttype *binpathptr;
     unsigned int *usintptr = (void *)0;
-    unsigned char *ucz = (void *)0; // space
     int status;
     FILE *fp;
     int j;
     int hitcnt;
     int i;
-    int index;
+    int idx;
     int system_errorcode;
-    int sz;
-    int incnt;
+    size_t sz;
+    long int li;
+    int ingenecnt;
 
 #ifdef L2P_USING_R
    char *p;
@@ -888,7 +1063,7 @@ static int l2p_core( int Rflag, int numingenes,char *genelist[], int msigflagarg
    SEXP inputnumberofgenes;         // 6 total count of user genes (user input)
    SEXP genesinpathwaysuniverse;    // 7 total number of unique genes in all pathways
    SEXP pathwayaccessionidentifier; // 8 canonical accession ( if availible, otherwise assigned by us )
-   SEXP source;                     // 9 KEGG,REACTOME,GO,PANT(=PANTHER),PID=(pathway interaciton database)
+   SEXP category;                     // 9 KEGG,REACTOME,GO,PANT(=PANTHER),PID=(pathway interaciton database)
    SEXP pathwayname;                // 10 Name of pathway
    SEXP genesinpathway;             // 11 genes_space_separated   HUGO genes from user that hit the pathway
    int maxflds = 11;
@@ -898,122 +1073,86 @@ static int l2p_core( int Rflag, int numingenes,char *genelist[], int msigflagarg
    SEXP rownam; // row names
    int protect_cnt = 0;
 
-   if (msigflagarg) msig_flag = 1;
+//    fprintf(stderr,"rpf inl2p_core numingens = %d \n",numingenes); 
 #else
     char s[20000];
+// fprintf(stderr,"rpf core pats=0x%x\n",catspat); fflush(NULL);
 #endif
 
-
+    // numg = 28992
+#if 0
     if (encode_flag)
     {
-        numg = 26568;  // brave new universe
+// not used
+        // numg = 26568;
         sprintf(fn_pathbin,"%s%s",exedir,"encpath.bin");
         sprintf(fn_genesbin,"%s%s",exedir,"encgenes.bin");
         sprintf(fn_spacebin,"%s%s",exedir,"encspace.bin");
     }
     else if (panther_only_flag)
     {
-        numg = 2238;
+// not used
+        // numg = 2238;
         sprintf(fn_pathbin, "%s%s",exedir,"pantherworks.bin");
         sprintf(fn_genesbin,"%s%s",exedir,"pantherworksgenes.bin");
         sprintf(fn_spacebin,"%s%s",exedir,"pantherworksspace.bin");
     }
     else if (msig_flag)
     {
-        numg = 25785;  // brave new universe
+// numg = 25785;
         sprintf(fn_pathbin, "%s%s",exedir,"msigpath.bin");
         sprintf(fn_genesbin,"%s%s",exedir,"msiggenes.bin");
         sprintf(fn_spacebin,"%s%s",exedir,"msigspace.bin");
     }
     else
+#endif
+
+    if (load_bin_dat() < 0)
     {
-        numg = 19688;  // universe
-        sprintf(fn_pathbin,"%s%s",exedir, "pathworks.bin");
-        sprintf(fn_genesbin,"%s%s",exedir,"pathworksgenes.bin");
-        sprintf(fn_spacebin,"%s%s",exedir,"pathworksspace.bin");
+        return (SEXP)0;
     }
 
-
-    fp = fopen (fn_pathbin,"r");
-    system_errorcode = errno;
-    if (!fp) 
-    { 
-        fprintf(stderr,"Can not open \"path binary data\" - %s - errno=%d\n",fn_pathbin,system_errorcode); 
-        goto CORE_ERROR;
-    }
-    fseek(fp, 0L, SEEK_END);
-    sz = ftell(fp);
-    numbinpaths = sz / sizeof(struct binpathouttype); 
-    rewind(fp);
-    (void)fread(&binpath[0],(size_t)sz,1,fp);
-    fclose(fp);
-    fp = (FILE *)0;
-
-// setup_hits_parallel_to_pathways(sizeof(struct binpathouttype) * numbinpaths);
-
-    fp = fopen (fn_genesbin,"r");
-    system_errorcode = errno;
-    if (!fp) { fprintf(stderr,"Can not open \"path genes data\" - %s , errno=%d\n",fn_genesbin,system_errorcode); exit(0); }
-    fseek(fp, 0L, SEEK_END);
-    sz = ftell(fp);
-    numbingenes = (int)(sz / sizeof(struct bingenetype)); 
-    rewind(fp);
-    (void)fread(&bingene[0],sizeof(struct bingenetype),numbingenes,fp);
-    fclose(fp);
-    fp = (FILE *)0;
-
-            // -- need hugo name access, so set up a parallel array 
-    status = setup_hugo_parallel_to_genebin( ((size_t)(numbingenes)*sizeof(struct hugo_type)) ,numbingenes);
+             // -- need hugo name access, so set up a parallel array
+    status = setup_hugo_parallel_to_genebin( numbingenes);
     if (status != 0)
         return 0;
-
-// -- for "spill over" , path and genes have pointers to variable sized data in space 
-// these are accessed by integer offset (i.e. pointers) to null terminated strings or known sized array of ints
-    fp = fopen (fn_spacebin,"r");
-    system_errorcode = errno;
-    if (!fp) { fprintf(stderr,"Can not open \"path space data\" - %s - errno=%d\n",fn_spacebin,system_errorcode); exit(0); }
-    fseek(fp, 0L, SEEK_END);
-    spacesize = ftell(fp);
-    rewind(fp);
-    ucz = malloc((size_t)spacesize); if (!ucz) { fprintf(stderr,"ERROR: can't malloc in l2p_core()\n"); return 0; }
-    (void)fread(ucz,spacesize,1,fp);
-    fclose(fp);
-    fp = (FILE *)0;
 
     if (user_universe_flag)
     {
 #ifdef L2P_USING_R
-        if (R_deal_with_universe_list(ulist,numbingenes,numbinpaths,&numg,ucz) != 0) 
+        if (R_deal_with_universe_list(ulist,numbingenes,numbinpaths,&numg,ucz) != 0)
         {
+// fprintf(stderr,"rpf after R_deal_with_universe_list(), return badness\n");
             return 0;
         }
 #else
-        if (deal_with_universe_file(universe_file,numbingenes,numbinpaths,&numg,ucz) != 0) 
+        if (deal_with_universe_file(universe_file,numbingenes,numbinpaths,&numg,ucz) != 0)
             return 0;
 #endif
     }
 
-    incnt = 0;
+    ingenecnt = 0;
 
 #ifdef L2P_USING_R
     PROTECT(Rret = Rf_allocVector(VECSXP, 11)); // a list with 11 elements
     protect_cnt++;
-    for (i=0 ; i<maxflds ; i++)
+    for (i=0 ; i<maxflds ; i++) // maxflds = 11 for now
     {
-        PROTECT(pval=Rf_allocVector(REALSXP, numbinpaths )); 
-        PROTECT(fdr=Rf_allocVector(REALSXP, numbinpaths)); 
-        PROTECT(ratio=Rf_allocVector(REALSXP, numbinpaths));
-        PROTECT(pathwayhitcount=Rf_allocVector(INTSXP, numbinpaths));
-        PROTECT(numberofgenesinpathway=Rf_allocVector(INTSXP, numbinpaths));
-        PROTECT(inputnumberofgenes=Rf_allocVector(INTSXP, numbinpaths));
-        PROTECT(genesinpathwaysuniverse=Rf_allocVector(INTSXP, numbinpaths));
-        PROTECT(pathwayaccessionidentifier=Rf_allocVector(STRSXP, numbinpaths));
-        PROTECT(source=Rf_allocVector(STRSXP, numbinpaths));
-        PROTECT(pathwayname=Rf_allocVector(STRSXP, numbinpaths));
-        PROTECT(genesinpathway=Rf_allocVector(STRSXP, numbinpaths));
+        PROTECT(pval=Rf_allocVector(REALSXP, numusedpaths ));
+        PROTECT(fdr=Rf_allocVector(REALSXP, numusedpaths));
+        PROTECT(ratio=Rf_allocVector(REALSXP, numusedpaths));
+        PROTECT(pathwayhitcount=Rf_allocVector(INTSXP, numusedpaths));
+        PROTECT(numberofgenesinpathway=Rf_allocVector(INTSXP, numusedpaths));
+        PROTECT(inputnumberofgenes=Rf_allocVector(INTSXP, numusedpaths));
+        PROTECT(genesinpathwaysuniverse=Rf_allocVector(INTSXP, numusedpaths));
+        PROTECT(pathwayaccessionidentifier=Rf_allocVector(STRSXP, numusedpaths));
+        PROTECT(category=Rf_allocVector(STRSXP, numusedpaths));   // is natively an int, but convert to string
+        PROTECT(pathwayname=Rf_allocVector(STRSXP, numusedpaths));
+        PROTECT(genesinpathway=Rf_allocVector(STRSXP, numusedpaths));
         protect_cnt+=11;
     }
 
+// fprintf(stderr,"rpf after numingenes=%d\n",numingenes);
     for (k=0;k<numingenes;k++)
 #else
     while ( fgets(s, sizeof(s), stdin) ) // gets() function is deprecated
@@ -1032,19 +1171,18 @@ static int l2p_core( int Rflag, int numingenes,char *genelist[], int msigflagarg
             if (!generec_ptr) { fprintf(stderr,"ERROR: null generecptr\n"); fflush(stderr); exit(0); }
             if ((generec_ptr)->pathcount)
             {
-                 incnt++;
-                 if (generec_ptr->pathplace == -1) { fprintf(stderr,"ERROR: should not get pathplace of -1 and pathcount\n");  exit(0); }
-                 if (generec_ptr->pathplace == 0) { fprintf(stderr,"ERROR: should not get pathplace of 0 and pathcount\n");  exit(0); }
+                 ingenecnt++;
+                 if (generec_ptr->pathplace == -1) { fprintf(stderr,"ERROR: should not get pathplace of -1 with a pathcount\n");  exit(0); }
+                 if (generec_ptr->pathplace == 0) { fprintf(stderr,"ERROR: should not get pathplace of 0 with a pathcount\n");  exit(0); }
                  for (i=0; i < generec_ptr->pathcount ; i++) // go through the paths for this gene, add hit to paths
                  {
-                     index = *(int *)(ucz + generec_ptr->pathplace + (i*4)); // get INDEX of record in binpath[]
-                     binpathptr = &binpath[index];
+                     idx = *(int *)(ucz + generec_ptr->pathplace + (i*4)); // get INDEX of record in binpath[]
+                     binpathptr = &binpath[idx];
                      if ((binpathptr->hits) == (void *)0)
-#if 1
                      {
                          binpathptr->hits = (void *)malloc((size_t)(binpathptr->numgenes+2) *4);
                          usintptr = (unsigned int *)(binpathptr->hits);
-                         *(usintptr+1) = (unsigned int)(generec_ptr - &bingene[0] ); // index
+                         *(usintptr+1) = (unsigned int)(generec_ptr - &bingene[0] ); // idx
                          *(usintptr) = (unsigned int) 1;
                      }
                      else
@@ -1052,59 +1190,44 @@ static int l2p_core( int Rflag, int numingenes,char *genelist[], int msigflagarg
                          usintptr = (unsigned int *)(binpathptr->hits); // point to already allocated array
                          unsigned int curcount = *usintptr;
                          curcount = curcount + 1;
-                         *usintptr = (unsigned int )(curcount); 
-                         *(usintptr+curcount) = (unsigned int)(generec_ptr - &bingene[0] ); // index
+                         *usintptr = (unsigned int )(curcount);
+                         *(usintptr+curcount) = (unsigned int)(generec_ptr - &bingene[0] ); // idx
                      }
-#else
-                     index = *(int *)(ucz + generec_ptr->pathplace + (i*4)); // get INDEX of record in binpath[]
-                     binpathptr = &binpath[index];
-                     if ((binpathptr->hits) == (void *)0)
-                     {
-                         binpathptr->hits = (void *)malloc((size_t)(binpathptr->numgenes+2) *8);
-                         uslongintptr = (unsigned long int *)(binpathptr->hits);
-                         *(uslongintptr+1) = (unsigned long int)generec_ptr;
-                         *(uslongintptr) = (unsigned long int) 1;
-                     }
-                     else
-                     {
-                         uslongintptr = (unsigned long int *)(binpathptr->hits); // point to already allocated array
-                         unsigned long int curcount = *uslongintptr;
-                         curcount = curcount + 1;
-                         *uslongintptr = (unsigned long int )(curcount); 
-                         *(uslongintptr+curcount) = (unsigned long int)generec_ptr; // cast pointer as unsigned long int
-                     }
-#endif
                 }
             }
         }
         if (h.hugo) { free(h.hugo); h.hugo = (char *)0; }
     }
+// fprintf(stderr,"rpf before do_pvals_and_bh numg=%d\n",numg);
+    do_pvals_and_bh(numg,ingenecnt);
 
-    do_exact_and_benjamini_hochberg(numg,incnt);
-
-    //d = exact22(n11_,n12_,n21_,n22_); note:3 hits in p53 pathway which has  40 genes ,total 29960 genes , user input 300 genes  
-    // d = exact22(3,40,297,29960);
-    if  (header_flag)
-        printf("pval\tfdr\tratio\tpathwayhitcount\tnumberofgenesin\tpathway\tinputnumberofgens\tgenesinpathwaysuniverse\tpathwayaccessionidentifier\tsource\tpathwayname\tpathwaytype\tgenes\n");
-    for (i=0 ; i<numbinpaths ; i++)
+#ifdef L2P_USING_R
+#else
+    if (no_header_flag == 0)
+        printf("pval\tfdr\tratio\tpathwayhitcount\tnumgenesinpw\tpathway\tinputnumofgenes\tgenesinpathwaysuniverse\tpathwayaccessionid\tcategory\tpathwayname\tpathwaytype\tgenes\n");
+#endif
+    for (i=0 ; i<numusedpaths; i++)
     {
-            binpathptr = &binpath[i];
+            binpathptr = &binpath[usedpaths[i].index];
+            tmps_cat[0] = (char)0;
+            category_code_to_string( (binpathptr)->category , tmps_cat);
             if (binpathptr->hits) hitcnt = *(unsigned int *)(binpathptr->hits);
             else hitcnt = 0;
+
 #ifdef L2P_USING_R
-            REAL(pval)[i] = pathparallel[i].pval;
-            REAL(fdr)[i] = pathparallel[i].fdr;
-            REAL(ratio)[i] = pathparallel[i].ad;
+            REAL(pval)[i] = usedpaths[i].pval;
+            REAL(fdr)[i] = usedpaths[i].fdr;
+            REAL(ratio)[i] = usedpaths[i].ad;
             INTEGER(pathwayhitcount)[i] = hitcnt;
             INTEGER(numberofgenesinpathway)[i] = (binpathptr)->numgenes;
-            INTEGER(inputnumberofgenes)[i] = incnt;
+            INTEGER(inputnumberofgenes)[i] = ingenecnt;
             INTEGER(genesinpathwaysuniverse)[i] = numg;
-            SET_STRING_ELT(pathwayaccessionidentifier, i, mkChar((binpathptr)->accession));
-            SET_STRING_ELT(source, i, mkChar((binpathptr)->source));
+            SET_STRING_ELT(pathwayaccessionidentifier, i, mkChar((char *)(ucz+((binpathptr)->accession ) ) ) ); 
+            SET_STRING_ELT(category, i, mkChar(tmps_cat));
             SET_STRING_ELT(pathwayname, i, mkChar( (char *)(ucz+((binpathptr)->name ) ) ) );
             SET_STRING_ELT(genesinpathway, i, mkChar( type2string((binpathptr)->type)) );
 
-            p2 =  malloc((hitcnt+2) * 34);  // plus some extras space 
+            p2 =  malloc((hitcnt+2) * 34);  // plus some extra space
             memset(p2,0,(hitcnt+2) * 34);
             if (binpathptr->hits)
             {
@@ -1113,10 +1236,9 @@ static int l2p_core( int Rflag, int numingenes,char *genelist[], int msigflagarg
                 for (j=1;j<(hitcnt + 1);j++)
                 {
                      generec_ptr =  &bingene[*(usintptr+j)];
-                     if (j>1) p = mystrcat(p," "); 
-                     p = mystrcat(p,generec_ptr->hugo); 
+                     if (j>1) p = mystrcat(p," ");
+                     p = mystrcat(p,generec_ptr->hugo);
                 }
-// printf("%d genes = %s\n",i,p2);
             }
             SET_STRING_ELT(genesinpathway, i, mkChar( p2 ) );
             if (p2) { free(p2); p2 = (char *)0; }
@@ -1124,17 +1246,17 @@ static int l2p_core( int Rflag, int numingenes,char *genelist[], int msigflagarg
             if (precise_flag == 1)
             {
                 printf("%20.18f\t%20.18f\t%11.9f\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t%s\t",
-                    pathparallel[i].pval, pathparallel[i].fdr, pathparallel[i].ad,
-                             hitcnt, (binpathptr)->numgenes, incnt, numg,
-                             (binpathptr)->accession, (binpathptr)->source,
+                    usedpaths[i].pval, usedpaths[i].fdr, usedpaths[i].ad,
+                             hitcnt, (binpathptr)->numgenes, ingenecnt, numg,
+                             (char *)(ucz+(binpathptr)->accession), tmps_cat,
                              (ucz+((binpathptr)->name)), type2string((binpathptr)->type));
             }
             else
             {
                 printf("%11.9f\t%11.9f\t%11.9f\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t%s\t",
-                    pathparallel[i].pval, pathparallel[i].fdr, pathparallel[i].ad,
-                             hitcnt, (binpathptr)->numgenes, incnt, numg,
-                             (binpathptr)->accession, (binpathptr)->source,
+                    usedpaths[i].pval, usedpaths[i].fdr, usedpaths[i].ad,
+                             hitcnt, (binpathptr)->numgenes, ingenecnt, numg,
+                             (char *)(ucz+(binpathptr)->accession), tmps_cat,
                              (ucz+((binpathptr)->name)), type2string((binpathptr)->type));
             }
             if (binpathptr->hits)
@@ -1143,7 +1265,7 @@ static int l2p_core( int Rflag, int numingenes,char *genelist[], int msigflagarg
                 for (j=1;j<(hitcnt + 1);j++)
                 {
                      generec_ptr =  &bingene[*(usintptr+j)];
-                     printf("%s ",generec_ptr->hugo); 
+                     printf("%s ",generec_ptr->hugo);
                 }
             }
             printf("\n");
@@ -1151,17 +1273,16 @@ static int l2p_core( int Rflag, int numingenes,char *genelist[], int msigflagarg
     }
 
 #ifdef L2P_USING_R
-   SET_VECTOR_ELT(Rret, 0, pval);
+   SET_VECTOR_ELT( Rret,0, pval);
    SET_VECTOR_ELT( Rret,1, fdr);
-
    SET_VECTOR_ELT( Rret,2, ratio);
    SET_VECTOR_ELT( Rret,3, pathwayhitcount);
    SET_VECTOR_ELT( Rret,4, numberofgenesinpathway);
    SET_VECTOR_ELT( Rret,5, inputnumberofgenes);
    SET_VECTOR_ELT( Rret,6, genesinpathwaysuniverse);
    SET_VECTOR_ELT( Rret,7, pathwayaccessionidentifier);
-   SET_VECTOR_ELT( Rret,8, source);
-   SET_VECTOR_ELT( Rret,9,pathwayname); 
+   SET_VECTOR_ELT( Rret,8, category);
+   SET_VECTOR_ELT( Rret,9, pathwayname);
    SET_VECTOR_ELT( Rret,10, genesinpathway);
 
    PROTECT(cls = allocVector(STRSXP, 1)); // class attribute
@@ -1181,17 +1302,17 @@ static int l2p_core( int Rflag, int numingenes,char *genelist[], int msigflagarg
    SET_STRING_ELT( nam,         5, mkChar("inputnumberofgenes"));
    SET_STRING_ELT( nam,    6, mkChar("genesinpathwaysuniverse"));
    SET_STRING_ELT( nam, 7, mkChar("pathwayaccessionidentifier"));
-   SET_STRING_ELT( nam,                     8, mkChar("source"));
+   SET_STRING_ELT( nam,                   8, mkChar("category"));
    SET_STRING_ELT( nam,                9, mkChar("pathwayname"));
    SET_STRING_ELT( nam,            10, mkChar("genesinpathway"));
    namesgets(Rret, nam);
 
-   PROTECT(rownam = allocVector(STRSXP, numbinpaths )); // row.names attribute
+   PROTECT(rownam = allocVector(STRSXP, numusedpaths )); // row.names attribute
    protect_cnt++;
-   for (i=0;i<numbinpaths;i++)
+   for (i=0;i<numusedpaths;i++)
    {
-       binpathptr = &binpath[i];
-       SET_STRING_ELT(rownam, i, mkChar((binpathptr)->accession));
+       binpathptr = &binpath[usedpaths[i].index];
+       SET_STRING_ELT(rownam, i, mkChar( (char *)(ucz+((binpathptr)->accession ) ) ) );
    }
    setAttrib(Rret, R_RowNamesSymbol, rownam);
 
@@ -1201,7 +1322,7 @@ static int l2p_core( int Rflag, int numingenes,char *genelist[], int msigflagarg
      if (genelist[i]) {free(genelist[i]); }
    free(genelist);
 
-   free_hugos(); 
+   free_hugos();
    free_binpaths();
 
    if (ucz) { free(ucz); ucz = (void *)0; }
@@ -1209,10 +1330,10 @@ static int l2p_core( int Rflag, int numingenes,char *genelist[], int msigflagarg
    return Rret;
 #else
    for (i=0;i<numingenes;i++)
-     if (genelist[i]) {free(genelist[i]); }
+     if (genelist[i]) { free(genelist[i]); }
    free(genelist);
 
-   free_hugos(); 
+   free_hugos();
    free_binpaths();
    if (ucz) { free(ucz); ucz = (void *)0; }
    return 0;
@@ -1223,7 +1344,7 @@ CORE_ERROR:
      if (genelist[i]) {free(genelist[i]); }
    free(genelist);
 
-   free_hugos(); 
+   free_hugos();
    free_binpaths();
    if (ucz) { free(ucz); ucz = (void *)0; }
    return 0;
@@ -1240,17 +1361,17 @@ SEXP l2p(SEXP lst, SEXP fpath)
    int len;
    char **z;
 
-// fprintf(stderr,"in  l2p() 0 \n"); fflush(stderr); 
-
+// fprintf(stderr,"in  l2p() 0 \n"); fflush(stderr);
    user_universe_flag = 0;
+   catspat=0;
    len = length(lst);
    strncpy(path,CHAR(STRING_ELT(fpath, 0)),PATH_MAX-2);
    z = (char **)malloc(sizeof(char *)*len);
    if (!z)
-   { 
+   {
         return (SEXP) -1;
-   } 
-   for (i = 0; i < len; i++) 
+   }
+   for (i = 0; i < len; i++)
    {
        *(z+i) = strdup(CHAR(STRING_ELT(lst, i)));
    }
@@ -1260,14 +1381,152 @@ SEXP l2p(SEXP lst, SEXP fpath)
       if (path[i] == '/') lastslash = i;
   }
   if (lastslash > 0) path[lastslash] = (char)0;
-
-// hardwire for tesing strcpy(exedir,"/Users/finneyr/R/libs/l2p/extdata/");
   strcpy(exedir,path);
   strcat(exedir,"/");
 
-  l2p_init(1,0,(void *)0);
+  l2p_init_R();
   return l2p_core(1,len, z, (void *)0,0);
 }
+
+SEXP l2pgetlongdesc(SEXP accarg, SEXP fpath)
+{
+    char path[PATH_MAX];
+    char acc[PATH_MAX];
+    int i;	  
+    struct binpathouttype *binpathptr;
+    int lastslash;
+    char *z;
+ 
+    strncpy(acc,CHAR(STRING_ELT(accarg, 0)),PATH_MAX-2);
+    strncpy(path,CHAR(STRING_ELT(fpath, 0)),PATH_MAX-2);
+    lastslash = -1;
+    for (i=0;path[i];i++)
+    {
+        if (path[i] == '/') lastslash = i;
+    }
+    if (lastslash > 0) path[lastslash] = (char)0;
+    strcpy(exedir,path);
+    strcat(exedir,"/");
+    if (load_bin_dat() < 0)
+    {
+        return (SEXP)0;
+    }
+    for (i=0;i<numbinpaths   ;i++)
+    {
+        binpathptr = &binpath[i];
+        z = (char *)(ucz+((binpathptr)->desc ) );
+// fprintf(stderr,"l2pgetlongdesc %s %s\n",acc,z); fflush(NULL);
+	if (z)
+	{
+            if (strcmp(acc,z) == 0)
+               break;
+	}
+	else z = (char *)0;
+    }
+    SEXP ret = PROTECT(allocVector(STRSXP, 1));
+    if (z)
+        SET_STRING_ELT(ret, 0, mkChar(z));
+    else
+        SET_STRING_ELT(ret, 0, mkChar(""));
+    UNPROTECT(1);
+    return ret;
+}
+
+SEXP l2pgetgenes4acc(SEXP accarg, SEXP fpath)
+{
+    char path[PATH_MAX];
+    char acc[PATH_MAX];
+    char tmphugo[1024];
+    struct hugo_type *hugoptr;
+    struct hugo_type h;
+    int *iptr;
+    int i,j;	  
+    int o2g;
+    struct binpathouttype *binpathptr;
+    char *z;
+    char *z2;
+    int geneid;
+    struct bingenetype Xgenerec; 
+    struct bingenetype *Xgenerec_ptr; 
+    int lastslash;
+ 
+    strncpy(acc,CHAR(STRING_ELT(accarg, 0)),PATH_MAX-2);
+    strncpy(path,CHAR(STRING_ELT(fpath, 0)),PATH_MAX-2);
+    lastslash = -1;
+    for (i=0;path[i];i++)
+    {
+        if (path[i] == '/') lastslash = i;
+    }
+    if (lastslash > 0) path[lastslash] = (char)0;
+    strcpy(exedir,path);
+    strcat(exedir,"/");
+    if (load_bin_dat() < 0)
+    {
+        return (SEXP)0;
+    }
+    z2 = (char *)0;
+    for (i=0;i<numbinpaths   ;i++)
+    {
+        binpathptr = &binpath[i];
+        z = (char *)(ucz+((binpathptr)->accession ) );
+        if (strcmp(acc,z) == 0)
+	{
+	    o2g = binpathptr->offset2geneids;
+            if (o2g<=0) { z2 = (char *)0; break; }
+            SEXP ret = PROTECT(allocVector(STRSXP, binpathptr->numgenes));
+            iptr = (int *)(ucz + o2g);
+            for (j=0 ; j<binpath[i].numgenes ; j++)  // for each gene for this pathway
+            {
+		tmphugo[0] = (char)0;
+                geneid = *(iptr+j);
+                Xgenerec.geneid = geneid;
+                Xgenerec_ptr = bsearch(&Xgenerec,&bingene[0],numbingenes,sizeof(struct bingenetype),cmp_bingene);
+                if (Xgenerec_ptr)
+                    strcpy(tmphugo, Xgenerec_ptr->hugo);
+                SET_STRING_ELT(ret, j, mkChar(tmphugo));
+            }
+            UNPROTECT(1);
+	    return ret;
+        }
+    }
+    return (SEXP)0;
+}
+
+SEXP l2pwcats (SEXP lst, SEXP catsarg, SEXP fpath)
+{
+   char path[PATH_MAX];
+   char cats[PATH_MAX];
+   int lastslash;
+   int i;
+   int len;
+   char **z;
+
+   user_universe_flag = 0;
+   catspat=0;
+   user_universe_flag = 0;
+   len = length(lst);
+   strncpy(path,CHAR(STRING_ELT(fpath, 0)),PATH_MAX-2);
+   strncpy(cats,CHAR(STRING_ELT(catsarg, 0)),PATH_MAX-2);
+   parsecats(cats); // set catpats
+   z = (char **)malloc(sizeof(char *)*len);
+   if (!z)
+        return (SEXP) -1;
+   for (i = 0; i < len; i++)
+       *(z+i) = strdup(CHAR(STRING_ELT(lst, i)));
+   lastslash = -1;
+   for (i=0;path[i];i++)
+   {
+       if (path[i] == '/') lastslash = i;
+   }
+   if (lastslash > 0) path[lastslash] = (char)0;
+
+   strcpy(exedir,path);
+   strcat(exedir,"/");
+
+   l2p_init_R();
+   return l2p_core(1,len, z, (void *)0,0);
+}
+
 
 SEXP l2pmsig(SEXP lst, SEXP fpath)
 {
@@ -1277,17 +1536,55 @@ SEXP l2pmsig(SEXP lst, SEXP fpath)
    int len;
    char **z;
 
-// fprintf(stderr,"in  l2pmsig() 0 \n"); fflush(stderr); 
 
    user_universe_flag = 0;
    len = length(lst);
    strncpy(path,CHAR(STRING_ELT(fpath, 0)),PATH_MAX-2);
    z = (char **)malloc(sizeof(char *)*len);
    if (!z)
-   { 
+   {
         return (SEXP) -1;
-   } 
-   for (i = 0; i < len; i++) 
+   }
+   for (i = 0; i < len; i++)
+   {
+       *(z+i) = strdup(CHAR(STRING_ELT(lst, i)));
+   }
+  lastslash = -1;
+  for (i=0;path[i];i++)
+  {
+      if (path[i] == '/') lastslash = i;
+  }
+  if (lastslash > 0) path[lastslash] = (char)0;
+
+  strcpy(exedir,path);
+  strcat(exedir,"/");
+
+  l2p_init_R();
+  return l2p_core(1,len, z, (void *)0,1);
+}
+
+SEXP l2pmsigwcats(SEXP lst, SEXP catsarg, SEXP fpath)
+{
+   char cats[PATH_MAX];
+   char path[PATH_MAX];
+   int lastslash;
+   int i;
+   int len;
+   char **z;
+
+
+   user_universe_flag = 0;
+   catspat=0;
+   len = length(lst);
+   strncpy(path,CHAR(STRING_ELT(fpath, 0)),PATH_MAX-2);
+   strncpy(cats,CHAR(STRING_ELT(catsarg, 0)),PATH_MAX-2);
+   parsecats(cats); // set catpats
+   z = (char **)malloc(sizeof(char *)*len);
+   if (!z)
+   {
+        return (SEXP) -1;
+   }
+   for (i = 0; i < len; i++)
    {
        *(z+i) = strdup(CHAR(STRING_ELT(lst, i)));
    }
@@ -1302,7 +1599,7 @@ SEXP l2pmsig(SEXP lst, SEXP fpath)
   strcpy(exedir,path);
   strcat(exedir,"/");
 
-  l2p_init(1,0,(void *)0);
+  l2p_init_R();
   return l2p_core(1,len, z, (void *)0,1);
 }
 
@@ -1314,24 +1611,18 @@ SEXP l2pu(SEXP lst, SEXP ulst, SEXP fpath )
    int len;
    char **z;
 
-
-   if (!lst)
-   {
-       return (SEXP)-1; 
-   }
-   if (!ulst)
-   {
-       return (SEXP)-2; 
-   }
    user_universe_flag = 1;
+   catspat=0;
+   if (!lst)
+       return (SEXP)-1;
+   if (!ulst)
+       return (SEXP)-2;
    len = length(lst);
    strncpy(path, CHAR(STRING_ELT(fpath, 0)),PATH_MAX-2);
    z = (char **)malloc(sizeof(char *)*len);
    if (!z)
-   {
-       return (SEXP)-3; 
-   }
-   for (i = 0; i < len; i++) 
+       return (SEXP)-3;
+   for (i = 0; i < len; i++)
    {
        *(z+i) = strdup(CHAR(STRING_ELT(lst, i)));
    }
@@ -1345,11 +1636,60 @@ SEXP l2pu(SEXP lst, SEXP ulst, SEXP fpath )
    strcpy(exedir,path);
    strcat(exedir,"/");
 
-   l2p_init(1,0,(void *)0);
+    char s[100];
+    memset(s,0,sizeof(s)); 
+    int2bin(catspat,s);
+// fprintf(stderr,"rpf BEFORE  l2p_init_R , in catspat=%d=0x%x %s\n",catspat,catspat,s); 
+    l2p_init_R();
+    memset(s,0,sizeof(s)); 
+    int2bin(catspat,s);
+// fprintf(stderr,"rpf after  l2p_init_R , in catspat=%d=0x%x %s\n",catspat,catspat,s); 
+   return l2p_core(1,len, z,ulst,0);
+}
+
+SEXP l2puwcats(SEXP lst, SEXP ulst, SEXP catsarg, SEXP fpath )
+{
+   char path[PATH_MAX];
+   char cats[PATH_MAX];
+   int lastslash;
+   int i;
+   int len;
+   char **z;
+
+   user_universe_flag = 1;
+   catspat=0;
+//   fprintf(stderr,"in l2puwcats 1\n"); fflush(NULL);
+   if (!lst)
+       return (SEXP)-1;
+   if (!ulst)
+       return (SEXP)-2;
+   len = length(lst);
+   strncpy(path, CHAR(STRING_ELT(fpath, 0)),PATH_MAX-2);
+   strncpy(cats,CHAR(STRING_ELT(catsarg, 0)),PATH_MAX-2);
+   parsecats(cats); // set catpats
+   z = (char **)malloc(sizeof(char *)*len);
+   if (!z)
+       return (SEXP)-3;
+   for (i = 0; i < len; i++)
+   {
+       *(z+i) = strdup(CHAR(STRING_ELT(lst, i)));
+   }
+   lastslash = -1;
+   for (i=0;path[i];i++)
+   {
+      if (path[i] == '/') lastslash = i;
+   }
+   if (lastslash > 0) path[lastslash] = (char)0;
+
+   strcpy(exedir,path);
+   strcat(exedir,"/");
+
+   l2p_init_R();
    return l2p_core(1,len, z,ulst,0);
 }
 
 
+#if 0
 SEXP l2pumsig(SEXP lst, SEXP ulst, SEXP fpath )
 {
    char path[PATH_MAX];
@@ -1358,14 +1698,13 @@ SEXP l2pumsig(SEXP lst, SEXP ulst, SEXP fpath )
    int len;
    char **z;
 
-
    if (!lst)
    {
-       return (SEXP)-1; 
+       return (SEXP)-1;
    }
    if (!ulst)
    {
-       return (SEXP)-2; 
+       return (SEXP)-2;
    }
    user_universe_flag = 1;
    len = length(lst);
@@ -1373,9 +1712,9 @@ SEXP l2pumsig(SEXP lst, SEXP ulst, SEXP fpath )
    z = (char **)malloc(sizeof(char *)*len);
    if (!z)
    {
-       return (SEXP)-3; 
+       return (SEXP)-3;
    }
-   for (i = 0; i < len; i++) 
+   for (i = 0; i < len; i++)
    {
        *(z+i) = strdup(CHAR(STRING_ELT(lst, i)));
    }
@@ -1389,43 +1728,100 @@ SEXP l2pumsig(SEXP lst, SEXP ulst, SEXP fpath )
    strcpy(exedir,path);
    strcat(exedir,"/");
 
-   l2p_init(1,0,(void *)0);
+   l2p_init_R();
    return l2p_core(1,len, z,ulst,1);
-}
-
-#if 0
-SEXP l2pver() 
-{
-  SEXP result = PROTECT(allocVector(REALSXP, 1));
-  double d;
-  REAL(result)[0] = asReal(2.0);
-  UNPROTECT(1);
-  return result;
 }
 #endif
 
+#if 0
+SEXP l2pmsigwcatsu(SEXP lst, SEXP ulst, SEXP catsarg, SEXP fpath )
+{
+   char cats[PATH_MAX];
+   char path[PATH_MAX];
+   int lastslash;
+   int i;
+   int len;
+   char **z;
+
+   if (!lst)
+       return (SEXP)-1;
+   if (!ulst)
+       return (SEXP)-2;
+   user_universe_flag = 1;
+   len = length(lst);
+   strncpy(path, CHAR(STRING_ELT(fpath, 0)),PATH_MAX-2);
+   strncpy(cats,CHAR(STRING_ELT(catsarg, 0)),PATH_MAX-2);
+   parsecats(cats); // set catpats
+   z = (char **)malloc(sizeof(char *)*len);
+   if (!z)
+       return (SEXP)-3;
+   for (i = 0; i < len; i++)
+       *(z+i) = strdup(CHAR(STRING_ELT(lst, i)));
+   lastslash = -1;
+   for (i=0;path[i];i++)
+   {
+      if (path[i] == '/') lastslash = i;
+   }
+   if (lastslash > 0) path[lastslash] = (char)0;
+
+   strcpy(exedir,path);
+   strcat(exedir,"/");
+
+   l2p_init_R();
+   return l2p_core(1,len, z,ulst,1);
+}
+#endif
 
 #else
+#if __MACH__
+// using mac os 
+#include <libproc.h>
+#endif
 static void get_this_executable_path(char *puthere,int size)
 {
     int i;
     int lastslash = 0;
 
     *puthere = (char)0;
-    (void)readlink("/proc/self/exe", puthere,size);
+ // if apple ... else linux ...
+#if __MACH__
+// /proc_pidpath/
+    pid_t pid;
+    pid = getpid();
+    int ret;
+    ret = proc_pidpath (pid, puthere, PATH_MAX);
+    if ( ret <= 0 ) {
+        fprintf(stderr, "PID %d: proc_pidpath ();\n", pid);
+        fprintf(stderr, "    %s\n", strerror(errno));
+    } else { // success
+        // printf("proc %d: %s\n", pid, puthere);
+    }
+// does not work    strcpy(rlinfo,"/proc/curproc/file");
+//  alternate method:  (_NSGetExecutablePath(path, &size) == 0)
+#else
+    char rlinfo[PATH_MAX];
+    strcpy(rlinfo,"/proc/self/exe");
+    if (readlink(rlinfo, puthere,PATH_MAX) == -1)
+    {
+         fprintf(stderr,"ERROR can not access full path of (this!) executable\n");
+                     // what to do ? not sure.
+         return;
+    }
+#endif
     for (i=0;puthere[i];i++)
         if (puthere[i] == '/') lastslash = i;
     puthere[lastslash+1] = (char)0;
     return;
 // readlink("/proc/curproc/file", buf, bufsize) (FreeBSD)
-// readlink("/proc/self/path/a.out", buf, bufsize) 
+// readlink("/proc/self/path/a.out", buf, bufsize)
 // On Windows: use GetModuleFileName(NULL, buf, bufsize)
 }
 
 static int l2p_run_for_C(int argc,char *argv[])
 {
-    l2p_init(0,argc,argv);
+    l2p_init_C(0,argc,argv);
     get_this_executable_path(exedir,PATH_MAX);
+// fprintf(stderr,"rpf in l2p_run_for_C before get_this_executable_path pats=0x%x\n",catspat); fflush(NULL);
     l2p_core(0, 0,(void *)0,0);
     return 0;
 }
@@ -1437,4 +1833,78 @@ int main(int argc,char *argv[])
 
 #endif
 
+
+
+void category_set_all(int *pat)
+{
+    *pat = ( 
+   CAT_NCBI_BIOCYC| CAT_NCBI_GO    | CAT_NCBI_KEGG  | CAT_NCBI_PANTH | CAT_NCBI_PID | CAT_NCBI_REACTOME     | CAT_NCBI_WikiPathways | 
+   CAT_MSIG_C1   | CAT_MSIG_C2   | CAT_MSIG_C3   | CAT_MSIG_C4   | CAT_MSIG_C5   | CAT_MSIG_C6   | CAT_MSIG_C7   | CAT_MSIG_H  ) ;
+}
+void category_code_to_string(int cat,char puthere[])
+{
+         if (cat & CAT_NCBI_BIOCYC) strcpy(puthere,"BIOCYC"); 
+    else if (cat & CAT_NCBI_GO    ) strcpy(puthere,"GO"); 
+    else if (cat & CAT_NCBI_KEGG  ) strcpy(puthere,"KEGG"); 
+    else if (cat & CAT_NCBI_PANTH ) strcpy(puthere,"PANTH"); 
+    else if (cat & CAT_NCBI_PID ) strcpy(puthere,"PID");
+    else if (cat & CAT_NCBI_REACTOME     ) strcpy(puthere,"REACTOME");
+    else if (cat & CAT_NCBI_WikiPathways ) strcpy(puthere,"WikiPathways");
+    else if (cat & CAT_MSIG_C1   ) strcpy(puthere,"C1");
+    else if (cat & CAT_MSIG_C2   ) strcpy(puthere,"C2");
+    else if (cat & CAT_MSIG_C3   ) strcpy(puthere,"C3");
+    else if (cat & CAT_MSIG_C4   ) strcpy(puthere,"C4");
+    else if (cat & CAT_MSIG_C5   ) strcpy(puthere,"C5");
+    else if (cat & CAT_MSIG_C6   ) strcpy(puthere,"C6");
+    else if (cat & CAT_MSIG_C7   ) strcpy(puthere,"C7");
+    else if (cat & CAT_MSIG_H    ) strcpy(puthere,"H");
+    else strcpy(puthere,"UNKNOWN");
+//    else if (cat & CAT_MSIG_ARCHIVED     )   strcpy(puthere,"ARCHIVED"); 
+}
+
+
+int string_to_category_code(char cats[])
+{
+if  (strcmp(cats,"BIOCYC") == 0)    return CAT_NCBI_BIOCYC; 
+else if  (strcmp(cats,"GO") == 0)   return CAT_NCBI_GO; 
+else if  (strcmp(cats,"KEGG") == 0) return CAT_NCBI_KEGG; 
+else if  (strcmp(cats,"PANTH") == 0) return CAT_NCBI_PANTH; 
+
+else if  (strcmp(cats,"PID") == 0) return CAT_NCBI_PID; 
+else if  (strcmp(cats,"Pathway Interaction Database") == 0) return CAT_NCBI_PID;  // dupe (see previous line)
+
+else if  (strcmp(cats,"REACTOME") == 0) return CAT_NCBI_REACTOME; 
+else if  (strcmp(cats,"WikiPathways") == 0) return CAT_NCBI_WikiPathways; 
+else if  (strcmp(cats,"C1") == 0) return CAT_MSIG_C1; 
+else if  (strcmp(cats,"C2") == 0) return CAT_MSIG_C2; 
+else if  (strcmp(cats,"C3") == 0) return CAT_MSIG_C3; 
+else if  (strcmp(cats,"C4") == 0) return CAT_MSIG_C4; 
+else if  (strcmp(cats,"C5") == 0) return CAT_MSIG_C5; 
+else if  (strcmp(cats,"C6") == 0) return CAT_MSIG_C6; 
+else if  (strcmp(cats,"C7") == 0) return CAT_MSIG_C7; 
+else if  (strcmp(cats,"H") == 0) return CAT_MSIG_H; 
+else return 0;
+// else if  (strcmp(cats,"ARCHIVED") == 0)   return CAT_MSIG_ARCHIVED; 
+}
+
+void categories_pattern_to_strings(int cat,char puthere[])
+{
+    puthere[0] = (char)0;
+    if (cat & CAT_NCBI_BIOCYC) strcat(puthere,"BIOCYC "); 
+    if (cat & CAT_NCBI_GO    ) strcat(puthere,"GO "); 
+    if (cat & CAT_NCBI_KEGG  ) strcat(puthere,"KEGG "); 
+    if (cat & CAT_NCBI_PANTH ) strcat(puthere,"PANTH "); 
+    if (cat & CAT_NCBI_PID ) strcat(puthere,"PID ");
+    if (cat & CAT_NCBI_REACTOME     ) strcat(puthere,"REACTOME ");
+    if (cat & CAT_NCBI_WikiPathways ) strcat(puthere,"WikiPathways ");
+//     if (cat & CAT_MSIG_ARCHIVED     )   strcat(puthere,"ARCHIVED "); 
+    if (cat & CAT_MSIG_C1    ) strcat(puthere,"C1 ");
+    if (cat & CAT_MSIG_C2   ) strcat(puthere,"C2 ");
+    if (cat & CAT_MSIG_C3   ) strcat(puthere,"C3 ");
+    if (cat & CAT_MSIG_C4   ) strcat(puthere,"C4 ");
+    if (cat & CAT_MSIG_C5   ) strcat(puthere,"C5 ");
+    if (cat & CAT_MSIG_C6   ) strcat(puthere,"C6 ");
+    if (cat & CAT_MSIG_C7   ) strcat(puthere,"C7 ");
+    if (cat & CAT_MSIG_H    ) strcat(puthere,"H ");
+}
 

@@ -2,16 +2,40 @@
 <pre>
 l2p = list to pathway
 
-Available functions:
-l2p(list)               - return a data frame with proabilities that input arg (list of genes) matches a pathway
-m2h(list)               - convert mouse to human gene symbols
-l2pu(genelist,universelist)    - l2p but with a universe file
-l2pmsig(list)           - use the MSIG (molecular signatures DB from Broad http://software.broadinstitute.org/gsea/msigdb/ )
-l2pumsig(list,universe) - use MSIG DB with a universe.
-
-
 This an R package for "gene set enrichment".
-The interface is a function "l2p()".  The output is a data frame with the following fields ...
+
+Available functions:
+l2p(genelist)            - return data frame with proabilities that arg (list of genes) matches a pathway
+l2pu(list,universe)  - return data frame with proabilities with list of genes and user specified universe
+l2pwcats(list,categeories)     - return data frome with categories specified
+l2puwcats(list,universe,categories) - same las l2pwcats but also with a universe
+l2pver - return l2p version
+l2pgetlongdesc(acc)  - get the full (possibly very long) description for pathway accession identifer string
+l2pgetgenes4acc(acc) - get the list all the genes for a pathway, use the accession.
+m2h(mousegeneist)    - return list of human genes for input list of mouse gene names
+
+msig functions are obsoleted, the msigdb are now provided with the "categories" parameter in the "wcats" functions.
+Example category is "KEGG,PID,C4", this is a string.
+
+Available categories are :
+BIOCYC  - organism specific Pathway/ Genome Databases (PGDBs)  - https://biocyc.org/
+GO  - initiative to unify representation of gene and gene product attributes -  http://geneontology.org
+KEGG - databases dealing with genomes, biological pathways, - https://www.kegg.jp/
+PANTH - databases for protein analysis through evolutionary relationships - http://www.pantherdb.org/
+PID  - Pathway interaction database: legacy database from Carl Schaefer & buddies at NCI
+REACTOME - curated database of biological pathways - https://reactome.org/
+WikiPathways - community resource for biological pathways - https://www.wikipathways.org
+C1 - MSigDB only, positional gene sets for each human chromosome and cytogenetic band.
+C2 - MSigDB only, curated gene sets from online pathway databases, publications in PubMed, and experts.
+C3 - MSigDB only, motif gene sets based on conserved cis-regulatory motifs from comparative analysis
+C4 - MSigDB only, computational gene sets defined by mining large collections of cancer-oriented microarray data.
+C5 - MSigDB only, gene sets  consist of genes annotated by the same GO terms.
+C6 - MSigDB only, oncogenic gene sets defined directly from microarray data from cancer gene perturbations.
+C7 - MSigDB only, immunologic gene sets  from microarray data from immunologic studies.
+
+An example function call is : x=l2pwcats(as.vector(genelist),"GO,WikiPathways,C4,C5,C6")
+
+The output is a data frame with the following fields ...
  
      1  pval
      2  fdr
@@ -21,7 +45,7 @@ The interface is a function "l2p()".  The output is a data frame with the follow
      6  inputnumberofgenes         total count of user genes (user input)
      7  genesinpathwaysuniverse    total number of unique genes in all pathways
      8  pathwayaccessionidentifier canonical accession ( if available, otherwise assigned by us )
-     9  source                     KEGG,REACTOME,GO,PANT(=PANTHER),PID=(pathway interaction database)
+     9  category                   KEGG,REACTOME,GO,PANTH,PID(=PANTHER),PID=(pathway interaction database)
     10  pathwayname                Name of pathway
     11  genesinpathway             genes from user that hit the pathway (separated by spaces)
     
@@ -35,18 +59,18 @@ options(width=10000)
 print(x)
 
 Installation:
-Download package (l2p_0.1-1.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.1-3.tar.gz
+Download package (l2p_0.1-4.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.1-4.tar.gz
 then  run R CMD INSTALL , i.e:
 
-R CMD INSTALL l2p_0.1-3.tar.gz
+R CMD INSTALL l2p_0.1-4.tar.gz
 
 or, from inside R, run this command:
 
-install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-3.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-4.tar.gz", repos=NULL) 
 
 Test program
 R --vanilla < test.R
 
-You can get the conda package with this command : wget https://github.com/CCBR/l2p/raw/master/r-l2p-0.0_3-r332_0.tar.bz2
+You can get the conda package with this command : wget https://github.com/CCBR/l2p/raw/master/r-l2p-0.0_4-r332_0.tar.bz2
 </pre>
 

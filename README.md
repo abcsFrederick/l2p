@@ -2,7 +2,7 @@
 <pre>
 l2p = list to pathway
 
-This an R package for "gene set enrichment".
+This an R package for "gene set enrichment".  It is optimized for speed.
 
 Available functions:
 l2p(genelist)            - return data frame with proabilities that arg (list of genes) matches a pathway
@@ -14,8 +14,8 @@ l2pgetlongdesc(acc)  - get the full (possibly very long) description for pathway
 l2pgetgenes4acc(acc) - get the list all the genes for a pathway, use the accession.
 m2h(mousegeneist)    - return list of human genes for input list of mouse gene names
 
-msig functions are obsoleted, the msigdb are now provided with the "categories" parameter in the "wcats" functions.
-Example category is "KEGG,PID,C4", this is a string.
+The "msig" functions are obsoleted, the msigdb pathways are now provided with the "categories" parameter in the "wcats" functions.
+Example categories parmeter is "KEGG,PID,C4", this is a string. User can mix and match as desired.
 
 Available categories are :
 BIOCYC  - organism specific Pathway/ Genome Databases (PGDBs)  - https://biocyc.org/
@@ -32,6 +32,8 @@ C4 - MSigDB only, computational gene sets defined by mining large collections of
 C5 - MSigDB only, gene sets  consist of genes annotated by the same GO terms.
 C6 - MSigDB only, oncogenic gene sets defined directly from microarray data from cancer gene perturbations.
 C7 - MSigDB only, immunologic gene sets  from microarray data from immunologic studies.
+
+MSigDB "ARCHIVED" pathways are not provided.
 
 An example function call is : x=l2pwcats(as.vector(genelist),"GO,WikiPathways,C4,C5,C6")
 

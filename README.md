@@ -29,11 +29,10 @@ C1 - MSigDB only, positional gene sets for each human chromosome and cytogenetic
 C2 - MSigDB only, curated gene sets from online pathway databases, publications in PubMed, and experts.
 C3 - MSigDB only, motif gene sets based on conserved cis-regulatory motifs from comparative analysis
 C4 - MSigDB only, computational gene sets defined by mining large collections of cancer-oriented microarray data.
-C5 - MSigDB only, gene sets  consist of genes annotated by the same GO terms.
 C6 - MSigDB only, oncogenic gene sets defined directly from microarray data from cancer gene perturbations.
 C7 - MSigDB only, immunologic gene sets  from microarray data from immunologic studies.
 
-MSigDB "ARCHIVED" pathways are not provided.
+MSigDB "ARCHIVED" pathways are not provided.  MSigDB category "C5" is not there. Use "GO" category (from NCBI biosystems),instead.
 
 An example function call is : x=l2pwcats(as.vector(genelist),"GO,WikiPathways,C4,C5,C6")
 

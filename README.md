@@ -60,14 +60,14 @@ options(width=10000)
 print(x)
 
 Installation:
-Download package (l2p_0.1-4.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.1-4.tar.gz
+Download package (l2p_0.1-4.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.1-5.tar.gz
 then  run R CMD INSTALL , i.e:
 
-R CMD INSTALL l2p_0.1-4.tar.gz
+R CMD INSTALL l2p_0.1-5.tar.gz
 
 or, from inside R, run this command:
 
-install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-4.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-5.tar.gz", repos=NULL) 
 
 Test program
 R --vanilla < test.R

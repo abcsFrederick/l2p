@@ -6,16 +6,24 @@ This an R package for "gene set enrichment".  It is optimized for speed.
 
 Available functions:
 l2p(genelist)            - return data frame with proabilities that arg (list of genes) matches a pathway
-l2pu(list,universe)  - return data frame with proabilities with list of genes and user specified universe
-l2pwcats(list,categeories)     - return data frome with categories specified
-l2puwcats(list,universe,categories) - same las l2pwcats but also with a universe
-l2pver - return l2p version
 l2pgetlongdesc(acc)  - get the full (possibly very long) description for pathway accession identifer string
 l2pgetgenes4acc(acc) - get the list all the genes for a pathway, use the accession.
 m2h(mousegeneist)    - return list of human genes for input list of mouse gene names
 
-The "msig" functions are obsoleted, the msigdb pathways are now provided with the "categories" parameter in the "wcats" functions.
-Example categories parmeter is "KEGG,PID,C4", this is a string. User can mix and match as desired.
+Convenience Functions:
+l2pu(list,universe)  - return data frame with proabilities with list of genes and user specified universe
+l2pwcats(list,categeories)     - return data frome with categories specified
+l2puwcats(list,universe,categories) - same las l2pwcats but also with a universe
+l2pver - return l2p version
+
+l2p is now supporting R style argument passing.
+Variable parameters are 
+
+    universe   = list of gene names
+    categories = see categories below
+    custompathways = A list of vectors in GMT (gene matrix transpose style).  Each custom pw vector : pwname, desc, gene1, gene2 ...
+    customfile = a gmt file
+    universefile = list of genes one per line
 
 Available categories are :
 BIOCYC  - organism specific Pathway/ Genome Databases (PGDBs)  - https://biocyc.org/
@@ -60,14 +68,14 @@ options(width=10000)
 print(x)
 
 Installation:
-Download package (l2p_0.1-4.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.1-5.tar.gz
+Download package (l2p_0.1-6.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.1-6.tar.gz
 then  run R CMD INSTALL , i.e:
 
-R CMD INSTALL l2p_0.1-5.tar.gz
+R CMD INSTALL l2p_0.1-6.tar.gz
 
 or, from inside R, run this command:
 
-install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-5.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-6.tar.gz", repos=NULL) 
 
 Test program
 R --vanilla < test.R

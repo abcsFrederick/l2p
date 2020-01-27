@@ -4,6 +4,18 @@ l2p = list to pathway
 
 This an R package for "gene set enrichment".  It is optimized for speed.
 
+Installation:
+Download package (l2p_0.1-6.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.1-6.tar.gz
+then  run R CMD INSTALL , i.e:
+
+R CMD INSTALL l2p_0.1-6.tar.gz
+
+or, from inside R, run this command:
+
+install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-6.tar.gz", repos=NULL) 
+
+You can get the conda package with this command : wget https://github.com/CCBR/l2p/raw/master/r-l2p-0.0_6-r332_0.tar.bz2
+
 Available functions:
 l2p(genelist)            - return data frame with proabilities that arg (list of genes) matches a pathway
 l2pgetlongdesc(acc)  - get the full (possibly very long) description for pathway accession identifer string
@@ -67,19 +79,22 @@ options(max.print=1000000)
 options(width=10000)
 print(x)
 
-Installation:
-Download package (l2p_0.1-6.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.1-6.tar.gz
-then  run R CMD INSTALL , i.e:
 
-R CMD INSTALL l2p_0.1-6.tar.gz
-
-or, from inside R, run this command:
-
-install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-6.tar.gz", repos=NULL) 
 
 Test program
 R --vanilla < test.R
 
-You can get the conda package with this command : wget https://github.com/CCBR/l2p/raw/master/r-l2p-0.0_4-r332_0.tar.bz2
+
+
+How to do make a custom pathway:
+vec1 = c("lall_ad.2","all_ad","AARS","ABCA1","ABCC9","ACTA1","ACTA2","ACTB","ACTC1","ACTG1","ACTN2","ACTN4","ACVR2B","ACVRL1","ADAR","AFG3L2","AFP","AIP","AK1","AKAP9")
+vec2 = c("ACMG_2_0.2","ACMG_2_0","BRCA1","BRCA2","TP53","STK11","MLH1","MSH2","MSH6","PMS2")
+vec3 = c("berg_ad.2","berg_ad","AARS","ABCC9","ACTA2","ACTB","ACTC1","ACTG1","ACTN2","ACTN4","ACVR2B","ACVRL1","ADAR","AFG3L2","AIP","AK1","AKAP9","AKT2","AMPD1","ANG","ANK2","ANKH","APC","APOA2","APOA5","APOB","APP","ATL1","ATP1A2","ATP2A2","ATP2C1","ATXN1","ATXN10","ATXN2","ATXN3","ATXN7","AXIN2","BAG3","BCO1","BEST1")
+mylist <- list(vec1, vec2,vec3)
+
+genes <- c( "TP53", "PTEN", "APC" , "CENPF" , "DLAT", "TP53" , "NOTAGENE" ,"ABCA1","ABCC9","ACTA1", "ADH1A" ,"ATXN3", "BEST1")
+x = l2p(as.vector(genes),custompathways=mylist)
+print(length(x))
+print(x);
 </pre>
 

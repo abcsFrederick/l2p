@@ -14,7 +14,8 @@ or, from inside R, run this command:
 
 install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-6.tar.gz", repos=NULL) 
 
-You can get the conda package with this command : wget https://github.com/CCBR/l2p/raw/master/r-l2p-0.0_6-r332_0.tar.bz2
+You can get the conda package with this command :
+ wget "https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_6-r351_0.tar.bz2?raw=true" -O r-l2p-0.0_6-r351_0.tar.bz2
 
 Available functions:
 l2p(genelist)            - return data frame with proabilities that arg (list of genes) matches a pathway

@@ -5,17 +5,17 @@ l2p = list to pathway
 This an R package for "gene set enrichment".  It is optimized for speed.
 
 Installation:
-Download package (l2p_0.1-6.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.1-6.tar.gz
+Download package (l2p_0.1-7.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.1-7.tar.gz
 then  run R CMD INSTALL , i.e:
 
-R CMD INSTALL l2p_0.1-6.tar.gz
+R CMD INSTALL l2p_0.1-7.tar.gz
 
 or, from inside R, run this command:
 
-install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-6.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.1-7.tar.gz", repos=NULL) 
 
 You can get the conda package with this command :
- wget "https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_6-r351_0.tar.bz2?raw=true" -O r-l2p-0.0_6-r351_0.tar.bz2
+ wget "https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_7-r351_0.tar.bz2?raw=true" -O r-l2p-0.0_7-r351_0.tar.bz2
 
 Available functions:
 l2p(genelist)            - return data frame with proabilities that arg (list of genes) matches a pathway
@@ -62,10 +62,10 @@ The output is a data frame with the following fields ...
      1  pval
      2  fdr
      3  ratio                      if positive, genes are OVER REPRESENTED, if negative genes are UNDER REPRESENTED
-     4  pathwayhitcount            number of genes hit in pathway
-     5  numberofgenesinpathway     number of genes in the pathway
-     6  inputnumberofgenes         total count of user genes (user input)
-     7  genesinpathwaysuniverse    total number of unique genes in all pathways
+     4  pwhitcount                 number of genes hit in pathway
+     5  pwnohitcount               pathway number of genes in the pathway
+     6  inputcount                  total count of user genes (user input)
+     7  pwuniverseminuslist        total number of unique genes in all pathways
      8  pathwayaccessionidentifier canonical accession ( if available, otherwise assigned by us )
      9  category                   KEGG,REACTOME,GO,PANTH,PID(=PANTHER),PID=(pathway interaction database)
     10  pathwayname                Name of pathway

@@ -64,7 +64,7 @@ The output is a data frame with the following fields ...
      3  ratio                      if positive, genes are OVER REPRESENTED, if negative genes are UNDER REPRESENTED
      4  pwhitcount                 number of genes hit in pathway
      5  pwnohitcount               pathway number of genes in the pathway
-     6  inputcount                  total count of user genes (user input)
+     6  inputcount                 total count of user genes (user input)
      7  pwuniverseminuslist        total number of unique genes in all pathways
      8  pathwayaccessionidentifier canonical accession ( if available, otherwise assigned by us )
      9  category                   KEGG,REACTOME,GO,PANTH,PID(=PANTHER),PID=(pathway interaction database)
@@ -87,7 +87,7 @@ R --vanilla < test.R
 
 
 
-How to do make a custom pathway:
+#ow to do make a custom pathway:
 vec1 = c("lall_ad.2","all_ad","AARS","ABCA1","ABCC9","ACTA1","ACTA2","ACTB","ACTC1","ACTG1","ACTN2","ACTN4","ACVR2B","ACVRL1","ADAR","AFG3L2","AFP","AIP","AK1","AKAP9")
 vec2 = c("ACMG_2_0.2","ACMG_2_0","BRCA1","BRCA2","TP53","STK11","MLH1","MSH2","MSH6","PMS2")
 vec3 = c("berg_ad.2","berg_ad","AARS","ABCC9","ACTA2","ACTB","ACTC1","ACTG1","ACTN2","ACTN4","ACVR2B","ACVRL1","ADAR","AFG3L2","AIP","AK1","AKAP9","AKT2","AMPD1","ANG","ANK2","ANKH","APC","APOA2","APOA5","APOB","APP","ATL1","ATP1A2","ATP2A2","ATP2C1","ATXN1","ATXN10","ATXN2","ATXN3","ATXN7","AXIN2","BAG3","BCO1","BEST1")
@@ -98,7 +98,7 @@ x = l2p(as.vector(genes),custompathways=mylist)
 print(length(x))
 print(x);
 
-How to use a user univers:
+#How to use a user universe:
 library(l2p)
 options(width=10000)
 options(max.print=999999)

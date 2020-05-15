@@ -5,23 +5,24 @@ l2p = list to pathway
 This an R package for "gene set enrichment".  It is optimized for speed.
 
 Installation:
-Download package (l2p_0.0-1.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-1.tar.gz
+Download package (l2p_0.0-2.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-2.tar.gz
 then  run R CMD INSTALL , i.e:
 
-R CMD INSTALL l2p_0.0-1.tar.gz
+R CMD INSTALL l2p_0.0-2.tar.gz
 
 or, from inside R, run this command:
 
-install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-1.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-2.tar.gz", repos=NULL) 
 
 You can get the conda package with this command :
-wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_1-r35_0.tar.bz2?raw=true -O r-l2p-0.0_1-r35_0.tar.bz2
+wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_2-r35_0.tar.bz2?raw=true -O r-l2p-0.0_2-r35_0.tar.bz2
 
 Available functions:
-l2p(genelist)            - return data frame with proabilities that arg (list of genes) matches a pathway
+l2p(genelist)        - return data frame with proabilities that arg (list of genes) matches a pathway
 l2pgetlongdesc(acc)  - get the full (possibly very long) description for pathway accession identifer string
 l2pgetgenes4acc(acc) - get the list all the genes for a pathway, use the accession.
-m2h(mousegeneist)    - return list of human genes for input list of mouse gene names
+m2h(mousegenelist)    - return list of human genes for input list of mouse gene names
+a2a(genelist,fromspecies,tospecies) - return list of source species genes and return list of orthologs for destination species
 
 Convenience Functions:
 l2pu(list,universe)  - return data frame with proabilities with list of genes and user specified universe
@@ -63,9 +64,9 @@ The output is a data frame with the following fields ...
      2  fdr
      3  ratio                      if positive, genes are OVER REPRESENTED, if negative genes are UNDER REPRESENTED
      4  pwhitcount                 number of genes hit in pathway
-     5  pwnohitcount               pathway number of genes in the pathway
+     5  pwnohitcount               pathway number of genes in the pathway minus hits
      6  inputcount                 total count of user genes (user input)
-     7  pwuniverseminuslist        total number of unique genes in all pathways
+     7  pwuniverseminuslist        total number of unique genes in all pathways minus user intput genes
      8  pathwayaccessionidentifier canonical accession ( if available, otherwise assigned by us )
      9  category                   KEGG,REACTOME,GO,PANTH,PID(=PANTHER),PID=(pathway interaction database)
     10  pathwayname                Name of pathway
@@ -87,7 +88,7 @@ R --vanilla < test.R
 
 
 
-#ow to do make a custom pathway:
+#how to do make a custom pathway:
 vec1 = c("lall_ad.2","all_ad","AARS","ABCA1","ABCC9","ACTA1","ACTA2","ACTB","ACTC1","ACTG1","ACTN2","ACTN4","ACVR2B","ACVRL1","ADAR","AFG3L2","AFP","AIP","AK1","AKAP9")
 vec2 = c("ACMG_2_0.2","ACMG_2_0","BRCA1","BRCA2","TP53","STK11","MLH1","MSH2","MSH6","PMS2")
 vec3 = c("berg_ad.2","berg_ad","AARS","ABCC9","ACTA2","ACTB","ACTC1","ACTG1","ACTN2","ACTN4","ACVR2B","ACVRL1","ADAR","AFG3L2","AIP","AK1","AKAP9","AKT2","AMPD1","ANG","ANK2","ANKH","APC","APOA2","APOA5","APOB","APP","ATL1","ATP1A2","ATP2A2","ATP2C1","ATXN1","ATXN10","ATXN2","ATXN3","ATXN7","AXIN2","BAG3","BCO1","BEST1")

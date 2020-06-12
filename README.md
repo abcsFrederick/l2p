@@ -5,14 +5,14 @@ l2p = list to pathway
 This an R package for "gene set enrichment".  It is optimized for speed.
 
 Installation:
-Download package (l2p_0.0-2.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-2.tar.gz
+Download package (l2p_0.0-3.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-3.tar.gz
 then  run R CMD INSTALL , i.e:
 
-R CMD INSTALL l2p_0.0-2.tar.gz
+R CMD INSTALL l2p_0.0-3.tar.gz
 
 or, from inside R, run this command:
 
-install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-2.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-3.tar.gz", repos=NULL) 
 
 You can get the conda package with this command :
 wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_2-r35_0.tar.bz2?raw=true -O r-l2p-0.0_2-r35_0.tar.bz2

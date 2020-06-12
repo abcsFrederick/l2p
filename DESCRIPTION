@@ -1,7 +1,7 @@
 Package: l2p
-Version: 0.1-6
+Version: 0.0-3
 Title: l2p
 Author: Richard Finney
 Maintainer: Richard Finney <finneyr@nih.gov>
-Description: l2p list to pathway (input HUGO genes, output KEGG,Panther,WikePathways,KEG,PID,Reactome)
+Description: l2p list to pathway (input HUGO genes, output KEGG,Panther,WikiPathways,KEG,PID,Reactome)
 License: Public Domain

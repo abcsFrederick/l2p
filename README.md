@@ -11,7 +11,8 @@ List to pathway, or `l2p`, is an R package for gene set enrichment analysis that
 
 There are various methods for installing `l2p`. Here we describe each method in more detail.
 
-The latesty package of `l2p` can be downloaded directly from Github. To download and install latest R package, `l2p_0.0-3.tar.gz`, please run the following commands:
+The latesty package of `l2p` can be downloaded directly from Github.  
+To download and install latest R package, `l2p_0.0-3.tar.gz`, please run the following commands:
 ```bash
 # Get l2p from Github
 wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-3.tar.gz
@@ -42,7 +43,7 @@ m2h(mousegenelist)          # return list of human genes for input list of mouse
 a2a(genelist,fromspecies,tospecies) # return list of source species genes and return list of orthologs for destination species
 
 # Convenience Functions:
-l2pu(list,universe)         # return data frame with proabilities with list of genes and user specified universe
+l2pu(list,universe)         # return data frame with probabilities with list of genes and user specified universe
 l2pwcats(list,categeories)  # return data frome with categories specified
 l2puwcats(list,universe,categories) # same as l2pwcats but also with a universe
 l2pver                              # return l2p version
@@ -62,8 +63,8 @@ Here is a description of each parameter:
  - **KEGG**: databases dealing with genomes, biological pathways, - https://www.kegg.jp/
  - **PANTH**: databases for protein analysis through evolutionary relationships - http://www.pantherdb.org/
  - **PID**: Pathway interaction database: legacy database from Carl Schaefer & buddies at NCI
- - **REACTOME: curated database of biological pathways - https://reactome.org/
- - **WikiPathways: community resource for biological pathways - https://www.wikipathways.org
+ - **REACTOME**: curated database of biological pathways - https://reactome.org/
+ - **WikiPathways**: community resource for biological pathways - https://www.wikipathways.org
  - **C1**: MSigDB positional gene sets for each human chromosome and cytogenetic band.
  - **C2**: MSigDB curated gene sets from online pathway databases, publications in PubMed, and experts.
  - **C3**: MSigDB motif gene sets based on conserved cis-regulatory motifs from comparative analysis

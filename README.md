@@ -2,10 +2,12 @@
 
 [![GitHub releases](https://img.shields.io/github/release/CCBR/l2p)](https://github.com/CCBR/l2p/releases) [![GitHub issues](https://img.shields.io/github/issues/CCBR/l2p)](https://github.com/CCBR/l2p/issues) [![GitHub license](https://img.shields.io/github/license/CCBR/l2p)](https://github.com/CCBR/l2p/blob/master/LICENSE)
 
-List to pathway, or `l2p`, is an R package for the fucntional enrichment analysis (i.e. gene set enrichment analysis) that is optimized for _speed_! `l2p` can be used to determine whether a biological process or function is over-represented in a user-defined gene list. This can be a list of differential expressed genes, or a list of annotated differential bound regions using a tool like [uropa](https://www.nature.com/articles/s41598-017-02464-y) or [homer](http://homer.ucsd.edu/homer/ngs/annotation.html).  
+List to pathway, or `l2p`, is an R package for gene set enrichment analysis that is _optimized for speed_! 
+
+`l2p` can be used to determine whether a biological process or function is over-represented in a user-defined gene list. This can be a list of differential expressed genes, or a list of annotated differential bound regions using a tool like [uropa](https://www.nature.com/articles/s41598-017-02464-y) or [homer](http://homer.ucsd.edu/homer/ngs/annotation.html).  
 
 
-## Installation
+### Installation
 
 There are various methods for installing `l2p`. Here we describe each method in more detail.
 
@@ -30,7 +32,7 @@ wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_2-r35_0.tar.bz2?raw=true 
 
 > _**Please Note:**_ It is assumed [R](https://cran.r-project.org/doc/manuals/R-admin.html) is installed on the target system. 
 
-## Usage
+### Usage
 ```
 # Available functions
 l2p(genelist)               # return data frame with proabilities that arg (list of genes) matches a pathway
@@ -50,11 +52,11 @@ l2pver                              # return l2p version
 Here is a description of each parameter: 
  - universe: list of gene names
  - categories: see categories below
- - custompathways: A list of vectors in GMT (gene matrix transpose style).  Each custom pw vector : pwname, desc, gene1, gene2 ...
- - customfile: a gmt file
+ - custompathways: A list of vectors in gene matrix transpose (GMT) format. Each custom pw vector: pwname, desc, gene1, gene2...
+ - customfile: a GMT file
  - universefile: list of genes one per line
 
-Available categories:
+**Available categories**:
  - **BIOCYC**: organism specific Pathway/ Genome Databases (PGDBs)  - https://biocyc.org/
  - **GO**: initiative to unify representation of gene and gene product attributes -  http://geneontology.org
  - **KEGG**: databases dealing with genomes, biological pathways, - https://www.kegg.jp/
@@ -71,12 +73,12 @@ Available categories:
 
 > _**Please Note:**_ MSigDB "ARCHIVED" pathways are not provided.  MSigDB category "C5" is not there. Use "GO" category (from NCBI biosystems), instead.
 
-## Example function call
+#### Example function call
 ```R 
 x=l2pwcats(as.vector(genelist),"GO,WikiPathways,C4,C5,C6")
 ```
 
-## Output
+#### Output
 ```
 The output is a data frame with the following fields ...
  
@@ -93,7 +95,7 @@ The output is a data frame with the following fields ...
     11  genesinpathway             genes from user that hit the pathway (separated by spaces)
 ```
 
-## Other Examples    
+#### Other Examples    
 ```R
 # Example usage for l2p
     
@@ -139,7 +141,7 @@ print(length(x))
 x=l2pgetuniverse(categories="C2,C3")
 print(length(x))
 ```
-## Tests
+### Tests
 ``` bash
 # Running l2p's QA test program
 R --vanilla < test.R

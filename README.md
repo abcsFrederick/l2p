@@ -1,4 +1,6 @@
 # l2p program
+[![GitHub releases](https://img.shields.io/github/release/CCBR/l2p)](https://github.com/CCBR/l2p/releases) [![GitHub issues](https://img.shields.io/github/issues/CCBR/l2p)](https://github.com/CCBR/l2p/issues) [![GitHub license](https://img.shields.io/github/license/CCBR/l2p)](https://github.com/CCBR/l2p/blob/master/LICENSE)
+
 <pre>
 l2p = list to pathway
 

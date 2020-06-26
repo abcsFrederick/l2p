@@ -1,65 +1,83 @@
-# l2p program
+# l2p
+
 [![GitHub releases](https://img.shields.io/github/release/CCBR/l2p)](https://github.com/CCBR/l2p/releases) [![GitHub issues](https://img.shields.io/github/issues/CCBR/l2p)](https://github.com/CCBR/l2p/issues) [![GitHub license](https://img.shields.io/github/license/CCBR/l2p)](https://github.com/CCBR/l2p/blob/master/LICENSE)
 
-<pre>
-l2p = list to pathway
+List to pathway, or `l2p`, is an R package for the fucntional enrichment analysis (i.e. gene set enrichment analysis) that is optimized for _speed_! `l2p` can be used to determine whether a biological process or function is over-represented in a user-defined gene list. This can be a list of differential expressed genes, or a list of annotated differential bound regions using a tool like [uropa](https://www.nature.com/articles/s41598-017-02464-y) or [homer](http://homer.ucsd.edu/homer/ngs/annotation.html).  
 
-This an R package for "gene set enrichment".  It is optimized for speed.
 
-Installation:
-Download package (l2p_0.0-3.tar.gz) : wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-3.tar.gz
-then  run R CMD INSTALL , i.e:
+## Installation
 
+There are various methods for installing `l2p`. Here we describe each method in more detail.
+
+The latesty package of `l2p` can be downloaded directly from Github. To download and install latest R package, `l2p_0.0-3.tar.gz`, please run the following commands:
+```bash
+# Get l2p from Github
+wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-3.tar.gz
+# Install as a site package 
 R CMD INSTALL l2p_0.0-3.tar.gz
-
-or, from inside R, run this command:
-
+```
+ 
+`l2p` can also be installed within an R console or RStudio session. Please run the following command to install `l2p` within R:
+```R
+# Install from R console or 
 install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-3.tar.gz", repos=NULL) 
+```
 
-You can get the conda package with this command :
+The `l2p` conda package can also be installed using the following command:
+```
 wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_2-r35_0.tar.bz2?raw=true -O r-l2p-0.0_2-r35_0.tar.bz2
+```
 
-Available functions:
-l2p(genelist)        - return data frame with proabilities that arg (list of genes) matches a pathway
-l2pgetlongdesc(acc)  - get the full (possibly very long) description for pathway accession identifer string
-l2pgetgenes4acc(acc) - get the list all the genes for a pathway, use the accession.
-m2h(mousegenelist)    - return list of human genes for input list of mouse gene names
-a2a(genelist,fromspecies,tospecies) - return list of source species genes and return list of orthologs for destination species
+> _**Please Note:**_ It is assumed [R](https://cran.r-project.org/doc/manuals/R-admin.html) is installed on the target system. 
 
-Convenience Functions:
-l2pu(list,universe)  - return data frame with proabilities with list of genes and user specified universe
-l2pwcats(list,categeories)     - return data frome with categories specified
-l2puwcats(list,universe,categories) - same las l2pwcats but also with a universe
-l2pver - return l2p version
+## Usage
+```
+# Available functions
+l2p(genelist)               # return data frame with proabilities that arg (list of genes) matches a pathway
+l2pgetlongdesc(acc)         # get the full (possibly very long) description for pathway accession identifer string
+l2pgetgenes4acc(acc)        # get the list all the genes for a pathway, use the accession.
+m2h(mousegenelist)          # return list of human genes for input list of mouse gene names
+a2a(genelist,fromspecies,tospecies) # return list of source species genes and return list of orthologs for destination species
 
-l2p is now supporting R style argument passing.
-Variable parameters are 
+# Convenience Functions:
+l2pu(list,universe)         # return data frame with proabilities with list of genes and user specified universe
+l2pwcats(list,categeories)  # return data frome with categories specified
+l2puwcats(list,universe,categories) # same as l2pwcats but also with a universe
+l2pver                              # return l2p version
+```
 
-    universe   = list of gene names
-    categories = see categories below
-    custompathways = A list of vectors in GMT (gene matrix transpose style).  Each custom pw vector : pwname, desc, gene1, gene2 ...
-    customfile = a gmt file
-    universefile = list of genes one per line
+`l2p` is now supporting R style argument passing.
+Here is a description of each parameter: 
+ - universe: list of gene names
+ - categories: see categories below
+ - custompathways: A list of vectors in GMT (gene matrix transpose style).  Each custom pw vector : pwname, desc, gene1, gene2 ...
+ - customfile: a gmt file
+ - universefile: list of genes one per line
 
-Available categories are :
-BIOCYC  - organism specific Pathway/ Genome Databases (PGDBs)  - https://biocyc.org/
-GO  - initiative to unify representation of gene and gene product attributes -  http://geneontology.org
-KEGG - databases dealing with genomes, biological pathways, - https://www.kegg.jp/
-PANTH - databases for protein analysis through evolutionary relationships - http://www.pantherdb.org/
-PID  - Pathway interaction database: legacy database from Carl Schaefer & buddies at NCI
-REACTOME - curated database of biological pathways - https://reactome.org/
-WikiPathways - community resource for biological pathways - https://www.wikipathways.org
-C1 - MSigDB only, positional gene sets for each human chromosome and cytogenetic band.
-C2 - MSigDB only, curated gene sets from online pathway databases, publications in PubMed, and experts.
-C3 - MSigDB only, motif gene sets based on conserved cis-regulatory motifs from comparative analysis
-C4 - MSigDB only, computational gene sets defined by mining large collections of cancer-oriented microarray data.
-C6 - MSigDB only, oncogenic gene sets defined directly from microarray data from cancer gene perturbations.
-C7 - MSigDB only, immunologic gene sets  from microarray data from immunologic studies.
+Available categories:
+ - **BIOCYC**: organism specific Pathway/ Genome Databases (PGDBs)  - https://biocyc.org/
+ - **GO**: initiative to unify representation of gene and gene product attributes -  http://geneontology.org
+ - **KEGG**: databases dealing with genomes, biological pathways, - https://www.kegg.jp/
+ - **PANTH**: databases for protein analysis through evolutionary relationships - http://www.pantherdb.org/
+ - **PID**: Pathway interaction database: legacy database from Carl Schaefer & buddies at NCI
+ - **REACTOME: curated database of biological pathways - https://reactome.org/
+ - **WikiPathways: community resource for biological pathways - https://www.wikipathways.org
+ - **C1**: MSigDB positional gene sets for each human chromosome and cytogenetic band.
+ - **C2**: MSigDB curated gene sets from online pathway databases, publications in PubMed, and experts.
+ - **C3**: MSigDB motif gene sets based on conserved cis-regulatory motifs from comparative analysis
+ - **C4**: MSigDB computational gene sets defined by mining large collections of cancer-oriented microarray data.
+ - **C6**: MSigDB oncogenic gene sets defined directly from microarray data from cancer gene perturbations.
+ - **C7**: MSigDB immunologic gene sets  from microarray data from immunologic studies.
 
-MSigDB "ARCHIVED" pathways are not provided.  MSigDB category "C5" is not there. Use "GO" category (from NCBI biosystems),instead.
+> _**Please Note:**_ MSigDB "ARCHIVED" pathways are not provided.  MSigDB category "C5" is not there. Use "GO" category (from NCBI biosystems), instead.
 
-An example function call is : x=l2pwcats(as.vector(genelist),"GO,WikiPathways,C4,C5,C6")
+## Example function call
+```R 
+x=l2pwcats(as.vector(genelist),"GO,WikiPathways,C4,C5,C6")
+```
 
+## Output
+```
 The output is a data frame with the following fields ...
  
      1  pval
@@ -73,8 +91,11 @@ The output is a data frame with the following fields ...
      9  category                   KEGG,REACTOME,GO,PANTH,PID(=PANTHER),PID=(pathway interaction database)
     10  pathwayname                Name of pathway
     11  genesinpathway             genes from user that hit the pathway (separated by spaces)
-    
-Example usage is:
+```
+
+## Other Examples    
+```R
+# Example usage for l2p
     
 library(l2p)
 genes <- c( "TP53", "PTEN", "APC" )
@@ -83,25 +104,17 @@ options(max.print=1000000)
 options(width=10000)
 print(x)
 
-
-
-Test program
-R --vanilla < test.R
-
-
-
-#how to do make a custom pathway:
+# How to make a custom pathway
 vec1 = c("lall_ad.2","all_ad","AARS","ABCA1","ABCC9","ACTA1","ACTA2","ACTB","ACTC1","ACTG1","ACTN2","ACTN4","ACVR2B","ACVRL1","ADAR","AFG3L2","AFP","AIP","AK1","AKAP9")
 vec2 = c("ACMG_2_0.2","ACMG_2_0","BRCA1","BRCA2","TP53","STK11","MLH1","MSH2","MSH6","PMS2")
 vec3 = c("berg_ad.2","berg_ad","AARS","ABCC9","ACTA2","ACTB","ACTC1","ACTG1","ACTN2","ACTN4","ACVR2B","ACVRL1","ADAR","AFG3L2","AIP","AK1","AKAP9","AKT2","AMPD1","ANG","ANK2","ANKH","APC","APOA2","APOA5","APOB","APP","ATL1","ATP1A2","ATP2A2","ATP2C1","ATXN1","ATXN10","ATXN2","ATXN3","ATXN7","AXIN2","BAG3","BCO1","BEST1")
 mylist <- list(vec1, vec2,vec3)
-
 genes <- c( "TP53", "PTEN", "APC" , "CENPF" , "DLAT", "TP53" , "NOTAGENE" ,"ABCA1","ABCC9","ACTA1", "ADH1A" ,"ATXN3", "BEST1")
 x = l2p(as.vector(genes),custompathways=mylist)
 print(length(x))
 print(x);
 
-#How to use a user universe:
+# How to set a user universe
 library(l2p)
 options(width=10000)
 options(max.print=999999)
@@ -110,7 +123,7 @@ fv<-c("ADH1A","CATSPERG","HLA-DQA2","HINT2P1","MIR3150A","OR5BS1P","LINC02338","
 
 genes<-c("ADH1A","CATSPERG","HLA-DQA2","HINT2P1","MIR3150A","OR5BS1P","LINC02338","C4orf48","PARD3B","CX3CR1","RPL21P121","ARHGAP1","GAPDHP36","CNBD1","C8orf48","HTR3D","LINC00396","HIGD1AP5")
 
-#x=l2p(genes,categories="KEGG")
+# x=l2p(genes,categories="KEGG")
 x=l2p(genes,universe=fv,categories="KEGG")
 print(length(x))
 x=l2pgetuniverse(categories="PID")
@@ -125,7 +138,9 @@ x=l2pgetuniverse(categories="C3")
 print(length(x))
 x=l2pgetuniverse(categories="C2,C3")
 print(length(x))
-
-
-</pre>
-
+```
+## Tests
+``` bash
+# Running l2p's QA test program
+R --vanilla < test.R
+```

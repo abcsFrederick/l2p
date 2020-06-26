@@ -7,12 +7,11 @@ List to pathway, or `l2p`, is an R package for gene set enrichment analysis that
 `l2p` can be used to determine whether a biological process or function is over-represented in a user-defined gene list. This can be a list of differential expressed genes, or a list of annotated differential bound regions using a tool like [uropa](https://www.nature.com/articles/s41598-017-02464-y) or [homer](http://homer.ucsd.edu/homer/ngs/annotation.html).  
 
 
-### Installation
+## Installation
 
-There are various methods for installing `l2p`. Here we describe each method in more detail.
+The latest package of `l2p` can be downloaded directly from Github. Here we describe each method in more detail.
 
-The latesty package of `l2p` can be downloaded directly from Github.  
-To download and install latest R package, `l2p_0.0-3.tar.gz`, please run the following commands:
+**Option 1:** Download and install latest R package, `l2p_0.0-3.tar.gz`, from command-line:
 ```bash
 # Get l2p from Github
 wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-3.tar.gz
@@ -20,20 +19,23 @@ wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-3.tar.gz
 R CMD INSTALL l2p_0.0-3.tar.gz
 ```
  
-`l2p` can also be installed within an R console or RStudio session. Please run the following command to install `l2p` within R:
+**Option 2:** Install `l2p` within an R console or RStudio session:
 ```R
 # Install from R console or 
 install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-3.tar.gz", repos=NULL) 
 ```
 
-The `l2p` conda package can also be installed using the following command:
-```
+**Option 3:** Download and install `l2p` using conda:
+```bash
+# Download Package
 wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_2-r35_0.tar.bz2?raw=true -O r-l2p-0.0_2-r35_0.tar.bz2
+# Install in a conda enviroment
+conda install r-l2p-0.0_2-r35_0.tar.bz2
 ```
 
 > _**Please Note:**_ It is assumed [R](https://cran.r-project.org/doc/manuals/R-admin.html) is installed on the target system. 
 
-### Usage
+## Usage
 ```
 # Available functions
 l2p(genelist)               # return data frame with proabilities that arg (list of genes) matches a pathway
@@ -96,7 +98,7 @@ The output is a data frame with the following fields ...
     11  genesinpathway             genes from user that hit the pathway (separated by spaces)
 ```
 
-#### Other Examples    
+#### More Examples    
 ```R
 # Example usage for l2p
     
@@ -142,8 +144,14 @@ print(length(x))
 x=l2pgetuniverse(categories="C2,C3")
 print(length(x))
 ```
-### Tests
+### Run Tests
 ``` bash
 # Running l2p's QA test program
 R --vanilla < test.R
 ```
+  
+<hr>
+  
+<p align="center">
+	<a href="#l2p">Back to Top</a>
+</p>

@@ -145,11 +145,14 @@ print(length(x))
 x=l2pgetuniverse(categories="C2,C3")
 print(length(x))
 ```
-### Run Tests
+## Testing  
 ``` bash
 # Running l2p's QA test program
 R --vanilla < test.R
 ```
+
+## Citation
+<sup>finneyr. (2020, July 13). CCBR/l2p: Release v0.0.3 (Version v0.0.3). Zenodo. http://doi.org/10.5281/zenodo.3942233</sup>
   
 <hr>
   

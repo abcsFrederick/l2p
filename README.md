@@ -152,7 +152,7 @@ R --vanilla < test.R
 ```
 
 ## Citation
-<sup>finneyr. (2020, July 13). CCBR/l2p: Release v0.0.3 (Version v0.0.3). Zenodo. http://doi.org/10.5281/zenodo.3942233</sup>
+<sup>Finney, R. & Nelson, G. (2020, July 13). List-to-Pathway: an ultrafast R package for gene set enrichment analysis (Version v0.0.3). Zenodo. http://doi.org/10.5281/zenodo.3942233</sup>
   
 <hr>
   

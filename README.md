@@ -12,18 +12,18 @@ List-to-pathway, or `l2p`, is an R package for gene set enrichment analysis that
 
 The latest package of `l2p` can be downloaded directly from Github. Here we describe each method in more detail.
 
-**Option 1:** Download and install latest R package, `l2p_0.0-3.tar.gz`, from command-line:
+**Option 1:** Download and install latest R package, `l2p_0.0-5.tar.gz`, from command-line:
 ```bash
 # Get l2p from Github
-wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-3.tar.gz
+wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-5.tar.gz
 # Install as a site package 
-R CMD INSTALL l2p_0.0-3.tar.gz
+R CMD INSTALL l2p_0.0-5.tar.gz
 ```
  
 **Option 2:** Install `l2p` within an R console or RStudio session:
 ```R
 # Install from R console or 
-install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-3.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-5.tar.gz", repos=NULL) 
 ```
 
 **Option 3:** Download and install `l2p` using conda:
@@ -86,18 +86,19 @@ x=l2pwcats(as.vector(genelist),"GO,WikiPathways,C4,C5,C6")
 ```
 The output is a data frame with the following fields ...
  
-     1  pval
-     2  fdr
-     3  ratio                      if positive, genes are OVER REPRESENTED, if negative genes are UNDER REPRESENTED
-     4  pwhitcount                 number of genes hit in pathway
-     5  pwnohitcount               pathway number of genes in the pathway minus hits
-     6  inputcount                 total count of user genes (user input)
-     7  pwuniverseminuslist        total number of unique genes in all pathways minus user intput genes
-     8  pathwayaccessionidentifier canonical accession ( if available, otherwise assigned by us )
-     9  category                   KEGG,REACTOME,GO,PANTH,PID(=PANTHER),PID=(pathway interaction database)
-    10  pathwayname                Name of pathway
-    11  genesinpathway             genes from user that hit the pathway (separated by spaces)
-```
+   1  pval                           fisher's 2x2 exact test
+   2  fdr                            false discovery rate: default is benjamini hochberg, GPCC method if permute=1
+   3  enrichment_score               same as old but multiplied by 100 : ((number_hits /(number_hits+number_misses)) - (number_user_genes/(number_user_genes+total_gens_minus_input))) * 100
+** 4  percent_gene_hits_per_pathway  (number_hits/(number_hits+number_misses))
+   5  number_hits                    number of genes hit in pathway
+   6  number_misses                  pathway number of genes in the pathway
+   7  number_user_genes              total count of user genes (user input)
+   8  total_genes_minus_input        total number of unique genes in all pathways
+   9  pathway_id                     canonical accession ( if available, otherwise assigned by us )
+  10  category                       KEGG,REACTOME,GO,PANT(=PANTHER),PID=(pathway interaction database)  *was "source"*
+  11  pathway_name                   Name of pathway
+  12  pathway_type                   functional_set,pathway,structural_complex,custom
+  13  genes                          HUGO genes from user that hit the pathway
 
 #### More Examples    
 ```R

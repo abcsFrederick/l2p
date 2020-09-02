@@ -89,7 +89,7 @@ The output is a data frame with the following fields ...
 
 1 pathway_name                  name of pathway
 2 pval                          fisher's exact p-value
-3 fdr                           false discovery rate: default is benjamini hochberg, GPCC method if permute=1
+3 fdr                           false discovery rate: benjamini hochberg
 4 enrichment_score              same as old but multiplied by 100 : ((number_hits /(number_hits+number_misses)) - (number_user_genes/(number_user_genes+total_gens_minus_input))) * 100
 5 percent_gene_hits_per_pathway (number_hits/(number_hits+number_misses))
 6 number_hits                   number of genes hit in pathway

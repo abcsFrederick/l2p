@@ -29,9 +29,9 @@ install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-7.tar.gz", repo
 **Option 3:** Download and install `l2p` using conda:
 ```bash
 # Download Package
-wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_2-r35_0.tar.bz2?raw=true -O r-l2p-0.0_2-r35_0.tar.bz2
+wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_7-r35_0.tar.bz2?raw=true -O r-l2p-0.0_7-r35_0.tar.bz2
 # Install in a conda enviroment
-conda install r-l2p-0.0_2-r35_0.tar.bz2
+conda install r-l2p-0.0_7-r35_0.tar.bz2
 ```
 
 > _**Please Note:**_ It is assumed [R](https://cran.r-project.org/doc/manuals/R-admin.html) is installed on the target system. 

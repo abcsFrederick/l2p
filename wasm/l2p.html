@@ -1,1 +1,1184 @@
-test
+<!DOCTYPE html>
+<!-- important system notes are at the bottom of this html file -->
+<html lang = "en">
+<head>
+<title>NCI l2p - Cancer Genomes with Webassembly</title>
+<meta charset = "utf-8">
+<meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+<meta name="keywords" content="WebAssembly,Cancer,Genome,Viewer,TCGA,bam,public,data,snp">
+<!-- Use two 3rd party javascript features from javascript libraries:
+            1) jquery feature called "resizable"
+            2) jquery plugin called "imgareaselect".
+-->
+<link href='CSS/jquery-ui.css' rel='stylesheet'> 
+<link href='CSS/imgareaselect-animated.css' rel='stylesheet'> 
+<style type="text/css">
+.imgareaselect-border1 {
+    background: url(CSS/border-h.gif) repeat-y left top;
+}
+.imgareaselect-border2 {
+    background: url(CSS/border-h.gif) repeat-x left top;
+}
+.imgareaselect-border3 {
+    background: url(CSS/border-v.gif) repeat-y right top;
+}
+.imgareaselect-border4 {
+    background: url(CSS/border-h.gif) repeat-x left bottom;
+}
+.ui-widget-content {
+          background: white;
+          border: 1px solid blue;
+          color: white;
+}
+#resizable { width: 500; height: 245;  padding: 0.1em; border : 1px solid black; text-align: center; margin: 0; }
+</style>
+
+<script src="JS/jquery-1.10.2.js"></script>
+<script src="JS/jquery-ui.js"></script>
+<script src="JS/jquery.imgareaselect.min.js"></script>
+<script src="JS/disability.js"></script>
+<script>
+
+var l2p_ready_flag = 0;
+var l2p_mode = ""; // main=mainmenu;login=loginmenu;view=viewmenu;browse=browsemenu;batch=batch;shop=shop
+
+
+
+// browser detection stolen from https://stackoverflow.com/questions/9847580/how-to-detect-safari-chrome-ie-firefox-and-opera-browser#9851769
+// Opera 8.0+
+var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+// Firefox 1.0+
+var isFirefox = typeof InstallTrigger !== 'undefined';
+// Safari 3.0+ "[object HTMLElementConstructor]" 
+var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
+// Internet Explorer 6-11
+var isIE = /*@cc_on!@*/false || !!document.documentMode;
+// Edge 20+
+var isEdge = !isIE && !!window.StyleMedia;
+// Chrome 1+
+var isChrome = !!window.chrome && !!window.chrome.webstore;
+// Blink engine detection
+var isBlink = (isChrome || isOpera) && !!window.CSS;
+
+var synth; // newish and evolving and apparently not totally portable javascript voice synthesis stuff
+           // it behaves differently in different browsers ... so ... make this real simple and vanilla
+var voices;  // synth stuff ...
+var volumeInput = 1;
+var rateInput = 2;
+var pitchInput = 1;
+
+var blind_flag = 0;   // wrapped up like duece another running in the night.
+var colorblind_flag = 0; // bills vs. jets color rush !  red vs. green !
+var nohands_flag = 0; // look ma
+var disability; // for passing in to initialize blind,colorblind and/or nohands.
+var pos;   // position  (eg. chr1:1000-2000 )
+var uuid;  // universally unique identifier  -used to identify bam file
+var barcode;  // user can pass barcode as argument
+var bamfn; // bamfilename
+var divClone; // dam it. does not work right, won't copy event listeners. must "reconstruct page by hand" instead. basically
+var ias; // image area select object for drag select (imgareaselect) zoon in
+
+
+/*
+document.addEventListener("keydown", mykeyDown, false);
+*/
+
+function MakeMeUpper(f){ 
+  var actualValue = f.value;        
+  var upperValue = f.value.toUpperCase();
+  if( actValue != upperValue){
+    f.value = upperValue;       
+  }   
+}
+
+var modifiernum = "";  // a string !
+
+function mykeyDown(e) {
+var k = e.keyCode;
+var t = e.target;
+var gotkey = 0;
+var gotnum = 0;
+//   console.log("key="+k+" target= "+ t.id);
+
+
+// HAY! here is where you pass through keystokes for form widgets ( like texboxes )!!!
+  if (t.id=='pos') return;
+  else if (t.id=='width') return;
+  else if (t.id=='height') return;
+
+// handle keystrokes ...
+/* number keys */
+/*0*/ if (k==48)       { modifiernum = modifiernum + "0"; force_push("modifiernum "+modifiernum); gotnum=1; }
+/*1*/  else if (k==49) { modifiernum = modifiernum + "1"; force_push("modifiernum "+modifiernum); gotnum=1; }
+/*2*/  else if (k==50) { modifiernum = modifiernum + "2"; force_push("modifiernum "+modifiernum); gotnum=1; }
+/*3*/  else if (k==51) { modifiernum = modifiernum + "3"; force_push("modifiernum "+modifiernum); gotnum=1; }
+/*4*/  else if (k==52) { modifiernum = modifiernum + "4"; force_push("modifiernum "+modifiernum); gotnum=1; }
+/*5*/  else if (k==53) { modifiernum = modifiernum + "5"; force_push("modifiernum "+modifiernum); gotnum=1; }
+/*6*/  else if (k==54) { modifiernum = modifiernum + "6"; force_push("modifiernum "+modifiernum); gotnum=1; }
+/*7*/  else if (k==55) { modifiernum = modifiernum + "7"; force_push("modifiernum "+modifiernum); gotnum=1; }
+/*8*/  else if (k==56) { modifiernum = modifiernum + "8"; force_push("modifiernum "+modifiernum); gotnum=1; }
+/*9*/  else if (k==57) { modifiernum = modifiernum + "9"; force_push("modifiernum "+modifiernum); gotnum=1; }
+
+  else if (k==188) {   // <  = move left
+      gotkey = 1;
+      submitbuttonmove(pos,0,modifiernum);
+      modifiernum="";
+  }
+  else if (k==190) {   // >  = move right
+      gotkey = 1;
+      submitbuttonmove(pos,1,modifiernum);
+      modifiernum="";
+  }
+  else if (k==77) {  // m mainmenu
+      l2pMainMenu();
+      gotkey = 1;
+      force_push("modifiernum 0");
+      modifiernum="";
+  }
+  else if (k==66) { // b batch
+      gotkey = 1;
+      SubmitFromMainMenu(2);//  CallWasmFunc(2); 
+      force_push("modifiernum 0");
+      modifiernum="";
+  }
+  else if(k==76) {  // l login 
+      gotkey = 1;
+      force_push("modifiernum 0");
+      modifiernum="";
+  }
+  else if(k==74) {  // j job batch
+      gotkey = 1;
+      force_push("modifiernum 0");
+      modifiernum="";
+  }
+  else if(k==83) {// s sonic sonification
+console.log("javascript will call sonics\n"); 
+      // xxx
+      gotkey = 1;
+      var result = Module.ccall('wasmfunc', 'number', ['number'], [21]);
+      force_push("modifiernum 0"); // RESET
+      modifiernum="";
+console.log("javascript called sonics\n"); 
+  }
+/*  MakeMeUpper(keyCode); */
+/* console.log("upkey="+keyCode); */
+/*
+  if(keyCode==13) {
+  console.log("You hit the enter key.");
+  } else {
+  console.log("Oh no you didn't.");
+  }
+*/
+}
+
+var speech_inited_flag = 0;
+function init_speech()
+{
+    speech_inited_flag = 1;
+    if('speechSynthesis' in window) {
+        synth = window.speechSynthesis;
+        voices = synth.getVoices();
+    }
+}
+
+function say(mymsg) {
+/* chrome speech synthesis can go into fail mode where it does not produce sound.  not sure why.  must restart chrome  ( aug 2018 ) */
+    console.log('in say()\n');
+    if('speechSynthesis' in window) {
+        if (speech_inited_flag == 0) { init_speech(); }
+        var to_speak = new SpeechSynthesisUtterance(mymsg);
+console.log('in say() got SpeechSynthesisUtterance\n');
+        if (to_speak) {
+            to_speak.rate = 1.1; // 0.1 to 10
+            to_speak.voiceURI = 'native';
+            to_speak.voiceURI = 'native';
+// to_speak.voice = voices[0];
+            to_speak.voice = voices.filter(function(voice) { return voice.name == 'Alex'; })[0];
+            console.log('in say before speak:'+mymsg+' to_speak: ' + to_speak + '\n') ;
+            synth.speak(to_speak);
+        } else { console.log('ERROR: SpeechSynthesisUtterance failed.') ; }
+    }
+}
+
+//  web speech recognition api - google chrome only for now  (august 2018)
+function start_speech_recognition() {
+    if (1) {
+        return -1; // turn off for now
+    }
+if (typeof webkitSpeechRecognition !== 'object') {
+    console.log('Speech recognition not available');
+    return -1;
+}
+
+// xxx
+var recognizer = new webkitSpeechRecognition();
+// console.log('in start_speech_recognition reconizer = ' +recognizer + ' \n');
+if (recognizer) {
+recognizer.lang = "en";
+console.log('in start_speech_recognition got recognizer \n');
+recognizer.onresult = function(event) {
+    if (event.results.length > 0) {
+        var result = event.results[event.results.length-1];
+        if(result.isFinal) {
+            console.log(result[0].transcript);
+        }
+    }  
+};
+recognizer.start();var recognizer = new webkitSpeechRecognition();
+recognizer.lang = "en";
+recognizer.onresult = function(event) {
+    if (event.results.length > 0) {
+        var result = event.results[event.results.length-1];
+        if(result.isFinal) {
+            console.log(result[0].transcript);
+        }
+    }  
+};
+recognizer.start();
+}
+}
+
+// cloning and restoring node does not work, it does not restore event bindings !!!
+function CloneAandD() { // arena and dashboard
+divClone = $("#wrapper").clone();
+console.log(' saved divClone'); 
+}
+
+
+function RestoreAandD() {
+// does not work right ... cuz bindings lost
+$("#wrapper").replaceWith(divClone);
+/*
+$("#wrapper").replaceWith(divClone.clone());
+    a_parent.replaceChild(a_prime,a_parent);
+    d_parent.replaceChild(d_prime,d_parent);
+    var a=document.getElementById('arena');
+    a_parent.replaceChild(a_prime,a);
+    a_parent.appendChild(d_prime);
+    var d=document.getElementById('dashboard');
+    d_parent.replaceChild( d_prime,a);
+*/
+}
+
+
+function pushval(val_id)
+{
+    var v = "";
+    var f;
+
+    if (push_first_time == 1) {
+        push_first_time = 0;
+        var newURL = window.location.protocol + "//" + window.location.host; 
+        force_push('windowlocation '+newURL); // recursion
+    }
+    if(document.getElementById(val_id)) {
+        v = document.getElementById(val_id).value;
+        if (!v) {
+            console.log('ERROR in pushval can not find value for '+val_id);
+        }
+    }
+    else {
+        console.log('ERROR in pushval , no val_id for val_id='+val_id);
+    }
+    f =  Module.cwrap('wasm_string_to_c', 'number', ['string']);
+    v = val_id + " " + v; 
+    var status = f(v);
+    console.log(v);
+}
+
+function getxy(e){
+/*
+		debug stuff
+    x=e.clientX;
+    y=e.clientY;
+    cursor="Your Mouse Position Is : " + x + " and " + y ;
+    console.log(cursor);
+*/
+}
+
+function stop_tracking_pos() {
+//    console.log('stop tracking pos');
+}
+
+function startresizable() {
+/*
+see answer at :
+https://stackoverflow.com/questions/6607335/jquery-ui-event-callbacks-not-triggering-when-set-in-initializer
+Since the resizecreate event only fires when the resizeable widget is created, you must bind to it before you create the widget.
+*/
+// console.log("in startresizable"); 
+    $("#resizable").bind('resizestop',function(event,ui) {
+       var width =  ui.size.width;
+       var height = ui.size.height;
+       console.log(" test1 "+ document.getElementById('iw').value + " " + document.getElementById('ih').value);
+       var nuw = parseInt(width);
+       var nuh = parseInt(height);
+       document.getElementById('iw').value = new Number(nuw);
+       document.getElementById('ih').value = new Number(nuh);
+       pushval('iw');
+       pushval('ih');
+    // hasn't changed pushval('pos');
+       console.log("resize stop "+ nuw + " " +nuw + " call wasmfunc 8");
+       console.log(" test2 "+ document.getElementById('iw').value + " " + document.getElementById('ih').value);
+    var result = Module.ccall('wasmfunc', // name of C function
+      'number', // return type
+      ['number'], // argument types
+      [8]); // browse single disease
+    }).resizable({
+        'create' : function() {
+//                console.log("resize inited");
+        }
+    });
+}
+startresizable();
+
+var gchr = "chr1";
+var gx1 = 0; // genomic start position 
+var gx2 = 1; // genomic end position 
+
+// imgareaselect info at http://odyniec.net/projects/imgareaselect/usage.html#options
+function img_area_select_end(img,selection) {
+ console.log("imgareaselect end " + selection.x1 + " " + selection.y1 + " " + selection.x2 + " " + selection.y2 + " " + selection.width + " " + selection.height)
+    var startw = 0;
+    var starth = 0;
+
+    var myimg = document.getElementById('bamimg');
+    if (myimg) {
+        startw = myimg.width;
+        var nx1 = selection.x1;             
+        var nx2 = selection.x2;             
+        var x1 = gx1 + (nx1 * ((gx2 - gx1) / startw));             
+        var x2 = gx1 + (nx2 * ((gx2 - gx1) / startw));             
+        x1 = parseInt(x1);              
+        x2 = parseInt(x2);              
+        if (x1 == x2) { x2 = x1 + 1};;             
+        force_push('pos '+gchr+ ":" +x1 + "-" + x2);
+        $('#bamimg').imgAreaSelect({ hide: true });
+//         ias. = $('#bamimg').imgAreaSelect({ disable: true });
+// bbb
+        var result = Module.ccall('wasmfunc', // name of C function
+          'number', // return type
+          ['number'], // argument types
+          [8]);
+    }
+    return true;
+}
+</script>
+
+
+<style type="text/css"> 
+body
+{
+    font-family: Arial,Helvetica Neue,Helvetica,sans-serif;
+}
+
+cursor:pointer; 
+/* do i need this ? , apparently yes*/
+
+.button {
+   border-top: 1px solid #96d1f8; 
+   background: #65a9d7; 
+   background: -webkit-gradient(linear, left top, left bottom, from(#3e779d), to(#65a9d7)); 
+   background: -webkit-linear-gradient(top, #3e779d, #65a9d7); 
+   background: -moz-linear-gradient(top, #3e779d, #65a9d7); 
+   background: -ms-linear-gradient(top, #3e779d, #65a9d7); 
+   background: -o-linear-gradient(top, #3e779d, #65a9d7); 
+   padding: 2px 4px; 
+   -webkit-border-radius: 8px; 
+   -moz-border-radius: 8px; 
+   border-radius: 8px; 
+   -webkit-box-shadow: rgba(0,0,0,1) 0 1px 0; 
+   -moz-box-shadow: rgba(0,0,0,1) 0 1px 0; 
+   box-shadow: rgba(0,0,0,1) 0 1px 0; 
+   text-shadow: rgba(0,0,0,.4) 0 1px 0; 
+   color: white; 
+   font-size: 13px; 
+   font-family: Helvetica, Arial, Sans-Serif; 
+   text-decoration: none; 
+   vertical-align: middle; 
+   } 
+.button:hover { 
+   border-top-color: #28597a; 
+   background: #28597a; 
+   color: #ccc; 
+   } 
+.button:active { 
+   border-top-color: #9fceed; 
+   background: #9fceed; 
+   } 
+
+.imgareaselect-border1 {
+    background: url(border-v.gif) repeat-y left top;
+}
+
+.imgareaselect-border2 {
+    background: url(border-h.gif) repeat-x left top;
+}
+
+.imgareaselect-border3 {
+    background: url(border-v.gif) repeat-y right top;
+}
+
+.imgareaselect-border4 {
+    background: url(border-h.gif) repeat-x left bottom;
+}
+
+.imgareaselect-border1, .imgareaselect-border2,
+.imgareaselect-border3, .imgareaselect-border4 {
+    filter: alpha(opacity=50);
+    opacity: 0.5;
+}
+
+.imgareaselect-handle {
+    background-color: #fff;
+    border: solid 1px #000;
+    filter: alpha(opacity=50);
+    opacity: 0.5;
+}
+
+.imgareaselect-outer {
+    background-color: #000;
+    filter: alpha(opacity=50);
+    opacity: 0.5;
+}
+
+.imgareaselect-selection {  
+}
+</style> 
+
+<script type="text/javascript">
+var push_first_time = 1;
+var loading_count = 0;
+var loading_mod = 0;
+
+function loading_message()
+{
+  var dashb;
+  var dots;
+  if (l2p_ready_flag == 0 ) {
+      loading_count = loading_count + 1;
+      loading_mod = loading_mod + 1;
+      if (loading_mod > 10) {
+         loading_mod = 0;
+      }
+      dashb = document.getElementById('dashboard');
+      if (dashb.innerHTML) {
+          dots = "";
+          for (var i = 0; i< loading_mod ; ++i) {
+              dots += '.';
+          }
+          dashb.innerHTML = '<h1>Loading NCI l2p ' + dots + '</h1>';
+      }
+      settimer= setTimeout("loading_message()",500);
+  }
+}
+settimer= setTimeout("loading_message()",10);
+
+function force_push(raw)
+{
+console.log("in force_push "+raw);
+    if (push_first_time == 1) {
+        push_first_time = 0;
+// var newURL = window.location.protocol + "//" + window.location.host + "/" + window.location.pathname;
+        var newURL = window.location.protocol + "//" + window.location.host; 
+        force_push("windowlocation "+newURL); // recursion
+        var xurl = window.location.href.split('?')[0];
+        force_push("windowlocationwithoutargs "+xurl); // recursion
+    }
+    // Module.cwrap('wasm_string_to_c', 'number', ['string'],raw);
+    let f =  Module.cwrap('wasm_string_to_c', 'number', ['string']);
+    var status = f(raw);
+    console.log(raw);
+}
+
+function PushTextArea()
+{
+    pushval('userpositions');
+    pushval('userbatchtag');
+}
+
+function l2pInitialLoad() {
+    var result;
+    if (l2p_ready_flag == 0) {
+        UpdateUsrMsg("Wait for NCI l2p webpage to load completely.");
+        return;
+    }
+    if ( disability != null ) { 
+          disabilities = disability.split(',');
+          var i;
+          for (i = 0; i < disabilities.length; i++) {
+              if (disabilities[i] == 'blind')  { 
+                  blind_flag = 1; 
+                  force_push('disability blind'); 
+                  console.log("got blind param in js"); 
+                  init_speech();
+              }
+              else if (disabilities[i] == 'colorblind')  { force_push('disability colorblind'); colorblind_flag = 1;}
+              else if (disabilities[i] == 'nohands')  { force_push('disability nohands'); nohands_flag = 1;}
+          }
+     }
+//	127.0.0.1/z.html?barcode=TCRBOA2-N-WEX&pos=TP53
+     if (!barcode) {
+         result = Module.ccall('wasmfunc', 'number', ['number'], [1]);
+     }
+     else {
+	// ddd
+console.log("before SubmitUUIDorBARCODE pos param = "+pos);
+         SubmitUUIDorBARCODE(barcode);
+     }
+    UpdateUsrMsg("Select Option");
+}
+
+
+function l2pMainMenu() {
+    if (l2p_ready_flag == 0) {
+        UpdateUsrMsg("Wait for NCI l2p webpage to load completely.");
+        return;
+    }
+    l2p_mode = "main";   // main=mainmenu;login=loginmenu;view=viewmenu;browse=browsemenu;batch=batch;shop=shop
+    if(document.getElementById('skybox')) {
+       document.getElementById('skybox').innerHTML = "<small>NCI l2p</small>";
+    }
+    var result = Module.ccall('wasmfunc', 'number', ['number'], [1]);
+    UpdateUsrMsg("Select Option");
+}
+
+function DoneDisabilityButton() 
+{
+    volumeInput = document.getElementById('volume');
+    rateInput = document.getElementById('rate');
+    pitchInput = document.getElementById('pitch');
+    l2pMainMenu();
+    UpdateUsrMsg("Select Option");
+}
+
+function l2pDisabilityMenu() 
+{
+    if (l2p_ready_flag == 0) {
+        UpdateUsrMsg("Wait for NCI l2p webpage to load completely.");
+        return;
+    }
+    l2p_mode = "disability";
+    if(document.getElementById('skybox')) {
+       document.getElementById('skybox').innerHTML = "<small>NCI l2p</small>";
+    }
+    var result = Module.ccall('wasmfunc', 'number', ['number'], [20]); // args: name of C function , return type , argument types , arument
+    UpdateUsrMsg("Select Option");
+}
+
+var pathwaydataArray = [];
+
+function PutPWRec(i, pval , fdr , ad, hitcnt , ingenecnt, numgenes , numg , accession , catz , name , type)
+{
+// console.log('in PutPWRec' +name);
+    pathwaydataArray[i] = {}; 
+    pathwaydataArray[i].pval =pval ;
+    pathwaydataArray[i].fdr =fdr;
+    pathwaydataArray[i].ad=ad;
+    pathwaydataArray[i].hitcnt =hitcnt;
+    pathwaydataArray[i].ingenecnt=ingenecnt;
+    pathwaydataArray[i].numgenes = numgenes;
+    pathwaydataArray[i].numg =numg;
+    pathwaydataArray[i].accession=accession ;
+    pathwaydataArray[i].catz =catz;
+    pathwaydataArray[i].name = name;
+    pathwaydataArray[i].type =type;
+    pathwaydataArray[i].genes=genes; 
+}
+
+function PWDisplay()
+{
+	/* pathway display */
+    var tbody = document.getElementById('anno');
+    var t = "";
+    var tr = "";
+
+console.log("in PWDisplay , length = "+pathwaydataArray.length);
+
+    t = '<table>';
+    t += '<tbody id="resultstbody">RESULTS</tbody><br>';
+     // for (var i = 0; i < pathwaydataArray.length; i++) 
+     for (var i = 0; i < 100; i++) {
+           tr = "<tr>"
+           + "<td>" + pathwaydataArray[i].pval  + "</td>"
+           + "<td>" + pathwaydataArray[i].fdr  + "</td>"
+           + "<td>" + pathwaydataArray[i].ad + "</td>"
+           + "<td>" + pathwaydataArray[i].hitcnt  + "</td>"
+           + "<td>" + pathwaydataArray[i].ingenecnt + "</td>"
+           + "<td>" + pathwaydataArray[i].numgenes  + "</td>"
+           + "<td>" + pathwaydataArray[i].numg  + "</td>"
+           + "<td>" + pathwaydataArray[i].accession  + "</td>"
+           + "<td>" + pathwaydataArray[i].catz  + "</td>"
+           + "<td>" + pathwaydataArray[i].name  + "</td>"
+           + "<td>" + pathwaydataArray[i].type  + "</td>"
+           + "<td>" + pathwaydataArray[i].genes + "</td>" 
+	   + "</tr><br>" ;
+ console.log("in PWDisplay loop "+i+ " to " + pathwaydataArray.length + " name:" + pathwaydataArray[i].name+" " +tr);
+
+        t += tr;
+        /* We add the table row to the table body */
+    }
+    tbody.innerHTML = t + '</table>';
+}
+
+function l2pTest(val) 
+{
+    if (l2p_ready_flag == 0) {
+        UpdateUsrMsg("Wait for NCI l2p webpage to load completely.");
+        return;
+    }
+    pushval('test');
+    var result = Module.ccall('wasmfunc', // name of C function
+      'number', // return type
+      ['number'], // argument types
+      [99]);
+    var f;
+    f =  Module.cwrap('wasm_string_to_c', 'number', ['string']);
+    v = "test" + " " + val; 
+    var status = f(v);
+    var result = Module.ccall('wasmfunc', // name of C function
+      'number', // return type
+      ['number'], // argument types
+      [99]);
+    UpdateUsrMsg("Did Test");
+}
+
+function l2pCheckout() 
+{
+    if (l2p_ready_flag == 0) {
+        UpdateUsrMsg("Wait for NCI l2p webpage to load completely.");
+        return;
+    }
+    l2p_mode = "batch";
+    var result = Module.ccall('wasmfunc', 'number', ['number'], [12]);
+    UpdateUsrMsg("Select Option");
+}
+
+function allReady() {
+  l2p_ready_flag = 1;
+  UpdateUsrMsg("NCI l2p Loaded");
+// xxx
+  start_speech_recognition();
+  if(document.getElementById('dashboard')) {
+       document.getElementById("dashboard").innerHTML = "<h1>NCI l2p Loaded</h1>";
+       l2pInitialLoad();
+// console.log("loading count="+loading_count);
+  }
+  else {
+console.log('ERROR: can not find dashboard span');
+  }
+}
+
+/*
+const result = await instantiatePromise;
+// Cache the compiled module
+// cache.put(MODULE_VERSION, result.module);
+// Return an instance of it
+return result.instance;
+}
+
+function myobj() {
+    this.env = null;
+    this.init = function() {
+    }
+    this.init();
+}
+*/
+
+function submitbutton() 
+{
+    if (l2p_ready_flag == 0) {
+        UpdateUsrMsg("Wait for NCI l2p webpage to load completely.");
+        return;
+    }
+    pushval('pos');
+    pushval('iw');
+    pushval('ih');
+    pushval('spliceonly');
+    var result = Module.ccall('wasmfunc', // name of C function
+      'number', // return type
+      ['number'], // argument types
+      [2]);
+// yyy 
+    console.log("rpf called ccall wasmfunc in submitbutton ");
+    UpdateUsrMsg("called wasmtest");
+}
+
+function submitbuttonmove(posarg, LorR,moveamount)  // left=0 or right=1
+{
+// console.log('in submitbuttonmove');
+    if (l2p_ready_flag == 0) {
+        UpdateUsrMsg("Wait for NCI l2p webpage to load completely.");
+        return;
+    }
+    let mv = Number(moveamount);
+    let v = document.getElementById('pos').value;
+    v = v.replace(':',' ');
+    v = v.replace('-',' ');
+    var fields = v.split(' ');
+    if (LorR == 0) mv = 0 - mv; // make negative number for addition
+
+    let p = fields[0] + ":" + (mv + Number(fields[1])) + "-" + (mv + Number(fields[2]));
+
+    let k = v.split(':'); 
+    force_push("pos "+p);
+    pushval('iw');
+    pushval('ih');
+    UpdateUsrMsg("Submit");
+    var result = Module.ccall('wasmfunc', // name of C function
+      'number', // return type
+      ['number'], // argument types
+      [8]);
+    UpdateUsrMsg("Submitted");
+// yyy 
+    console.log("rpf called ccall wasmfunc in submitbutton ");
+}
+
+
+
+function SubmitUUIDorBARCODE(obj)    
+{   
+    var uuidhex=obj;
+    
+	// ddd
+    force_push('uuid '+uuidhex);
+    force_push('pos '+pos);
+
+	// use default size...
+    // pushval('iw');
+    // pushval('ih');
+
+console.log("In SubmitUUIDorBARCODE, obj="+ obj); 
+    var result = Module.ccall('wasmfunc', // name of C function
+      'number', // return type
+      ['number'], // argument types
+      [30]); // view with supplied uuid ( or barcode )
+}   
+
+function SubmitX(obj)    
+{   
+    var u="";   
+    
+    pushval('pos');
+    pushval('iw');
+    pushval('ih');
+console.log("In SubmitX , pos="+ obj.pos.value + " "  + obj.iw.value + " "  + obj.ih.value ); 
+    var result = Module.ccall('wasmfunc', // name of C function
+      'number', // return type
+      ['number'], // argument types
+      [8]); // browse single disease
+/*
+    u = u + "position=" + encodeURIComponent(obj.position.value);   
+    u = u + "&iw=" + encodeURIComponent(obj.iw.value);   
+    u = u + "&ih=" + encodeURIComponent(obj.ih.value);   
+    if (obj.spliceonly.checked) { u = u + "&spliceonly=on"; } 
+    if (obj.qual.checked) { u = u + "&qual=on"; } 
+    if (obj.basecolors.checked) { u = u + "&basecolors=on"; } 
+    window.location = u;   
+*/
+}   
+
+function SubmitEnter(this_form_arg,e) {
+    var evt = e || window.event     // "event" is IE
+    if ( evt.keyCode === 13 ) {
+        SubmitX(this_form_arg);
+        return false
+    }
+    return true;
+}
+
+
+/*
+function SubmitEnter(obj)    
+{   
+    var u="";   
+    
+    u = 
+    pushval('pos');
+    pushval('iw');
+    pushval('ih');
+console.log("In SubmitEnter , pos="+ obj.pos.value + " "  + obj.iw.value + " "  + obj.ih.value ); 
+    var result = Module.ccall('wasmfunc', // name of C function
+      'number', // return type
+      ['number'], // argument types
+      [8]); // browse single disease
+ old ...
+    u = u + "position=" + encodeURIComponent(obj.position.value);   
+    u = u + "&iw=" + encodeURIComponent(obj.iw.value);   
+    u = u + "&ih=" + encodeURIComponent(obj.ih.value);   
+    if (obj.spliceonly.checked) { u = u + "&spliceonly=on"; } 
+    if (obj.qual.checked) { u = u + "&qual=on"; } 
+    if (obj.basecolors.checked) { u = u + "&basecolors=on"; } 
+    window.location = u;   
+}   
+*/
+
+
+function SubmitY(obj,position)    
+{   
+    var u;   
+    var pos2;   
+
+console.log("In SubmitY , obj="+obj);
+console.log("In SubmitY , pos="+position);
+    pushval('iw');
+    pushval('ih');
+
+    pos2 = position;
+    let partsArray = position.split(':');
+    let chr = partsArray[0];
+    partsArray = partsArray[1].split('-');
+    gchr = chr;
+    gx1 = partsArray[0];
+    gx2 = partsArray[1];
+    force_push('pos '+chr+ ":" +partsArray[0] + "-" + partsArray[1]);
+    var result = Module.ccall('wasmfunc', // name of C function
+          'number', // return type
+          ['number'], // argument types
+          [8]); // browse single disease
+}   
+
+function CallWasmFunc(funcarg)    
+{   
+    var result = Module.ccall('wasmfunc', // name of C function
+          'number', // return type
+          ['number'], // argument types
+          [funcarg]); // browse single disease
+}   
+
+
+function ToggleSampleInShoppingCart(rptid) // pass it index rpt set as shopping cart
+{   
+    var u;   
+    var pos2;   
+
+    var result = Module.ccall('toggle_item_in_cart', // name of C function
+          'number', // return type
+          ['number'], // argument types
+          [rptid]); // browse single project/disease
+}   
+
+function UpdateShoppingCart() // pass it index rpt set as shopping cart
+{   
+    var u;   
+    var pos2;   
+
+    console.log('in UpdateShoppingCart() ');
+    var result = Module.ccall('update_cart', 'number', ['number'], [0]);
+    console.log('end UpdateShoppingCart() ');
+}   
+
+
+   // --- main menu button submission 
+function SubmitFromMainMenu(x) {
+    if (l2p_ready_flag == 0) {
+        UpdateUsrMsg('Wait for NCI l2p webpage to load completely.');
+        return;
+    }
+    var result = Module.ccall('wasmfunc', 'number', ['number'], [x]);
+//    console.log('in SubmitFromMainMenu() '+x);
+//     UpdateUsrMsg('called func M:'+x);
+}
+
+
+   // --- get genes
+function SubmitGenes(obj)    
+{
+    console.log("rpf in SubmitGenes ");
+    if (l2p_ready_flag == 0) {
+        UpdateUsrMsg("Wait for NCI l2p webpage to load completely.");
+        return;
+    }
+    pushval('genes');
+    var result = Module.ccall('wasmfunc', // name of C function
+      'number', // return type
+      ['number'], // argument types
+      [2]);
+    console.log("rpf called ccall wasmfunc(2) in SubmitGenes ");
+    UpdateUsrMsg("called SubmitGenes");
+}
+
+
+function DisabilityButton(disability_arg)    {
+console.log("in DisabilitiyButton "+ disability_arg);
+    if (l2p_ready_flag == 0) {
+        UpdateUsrMsg("Wait for NCI l2p webpage to load completely.");
+        return;
+    }
+    if (disability_arg == 'blind') blind_flag = 1;
+    else if (disability_arg == 'colorblind') colorblind_flag = 1;
+    else if (disability_arg == 'nohands') nohands_flag = 1;
+    force_push('disability '+disability_arg);
+}
+
+function SubmitProject(projectindex)    {
+console.log("in SubmitProject, index=%d",projectindex);
+    if (l2p_ready_flag == 0) {
+        UpdateUsrMsg("Wait for NCI l2p webpage to load completely.");
+        return;
+    }
+    force_push('projectindex '+projectindex);
+    var result = Module.ccall('wasmfunc', // name of C function
+      'number', // return type
+      ['number'], // argument types
+      [9]); // browse single disease
+// yyy 
+    console.log("rpf called ccall wasmfunc(9) , in SubmitProject() ");
+UpdateUsrMsg("called SubmitProject");
+}
+
+
+function SubmitProjectShoppingCart(projectindex)    
+{
+    if (l2p_ready_flag == 0) {
+        UpdateUsrMsg("Wait for NCI l2p webpage to load completely.");
+        return;
+    }
+console.log('in SubmitProjectShoppingCart '+projectindex);
+console.log("in SubmitProjectShoppingCart force push ");
+    force_push('projectindex '+projectindex);
+console.log("in SubmitProjectShoppingCart after force push , will callwasmfunc(11)");
+    var result = Module.ccall('wasmfunc', 'number', ['number'], [11]);
+// yyy 
+    console.log("rpf after ccall wasmfunc(11) , in SubmitProjectShoppingCart() ");
+UpdateUsrMsg("Project Shopping Menu");
+}
+
+
+function SubmitSample(uuidhex)
+{
+console.log("in SubmitSample: uuid:"+uuidhex);
+    if (l2p_ready_flag == 0) {
+        UpdateUsrMsg("Wait for NCI l2p webpage to load completely.");
+        return;
+    }
+    force_push('uuid '+uuidhex);
+/*
+no wasm func8 pushes gchr, gx1 gx2
+    var pos2 = position;
+    partsArray = position.split(':');
+    var chr = partsArray[0];
+    partsArray = partsArray[1].split('-');
+    gchr = chr;
+    force_push('pos '+chr+ ":" +partsArray[0] + "-" + partsArray[1]);
+    gchr = chr;
+    gx1 = partsArray[0];
+    gx2 = partsArray[1];
+*/
+    var result = Module.ccall('wasmfunc', // name of C function
+      'number', // return type
+      ['number'], // argument types
+      [8]); // browse single disease
+// yyy 
+    console.log("rpf called ccall wasmfunc (8) , in SubmitSample() ");
+UpdateUsrMsg("UUID:"+uuidhex);
+}
+
+
+function xhrSuccess () { 
+console.error("in xhrSuccess()"); 
+// this.callback.apply(this, this.arguments); 
+if (this.status == 200) {
+  var stream = FS.open('/tmp.bam','w+');
+       for (var i = 0, len = this.responseText.length; i < len; ++i) {
+           FS.write(stream,this.response[i],0,1,0);
+           if (i < 10) {
+  console.log(this.response[i]);
+       }
+       }
+//   console.log(sMsg + this.responseText);
+}
+}
+
+function xhrError () { console.error(this.statusText); }
+function get_bam_button() {
+    var oReq = new XMLHttpRequest();
+//    oReq.callback = fCallback; // = 2nd argument to this function
+// yyy 
+    var u;   
+    u = "http://127.0.1.1/cgi-bin/slicer?fileid=d8b0a092-b1da-45d3-98af-50d32ece8834&";
+    var v = document.getElementById('pos').value;
+    console.log(v);
+    u = u + "pos=" + encodeURIComponent(v);
+//    oReq.arguments = Array.prototype.slice.call(arguments, 2);
+    oReq.responseType = 'text';
+    oReq.onload = xhrSuccess;
+    oReq.onerror = xhrError;
+    oReq.open("get", u, true);
+    oReq.send(null);
+}
+
+/*
+debug
+function bam_loadedfile_callback (sMsg) {
+   console.log(sMsg + this.responseText);
+******** yyy put this in 
+  var stream = FS.open("/tmp.bam","w+");
+  var decodedData = window.atob(this.responseText); 
+  FS.write(stream, decodedData, 0, this.responseText.length, 0);
+  FS.close(stream);
+  console.log("wrote /tmp/bam");
+   console.log(sMsg + this.responseText);
+  FS.stat()
+}
+*/
+
+
+function get_bam_button_OLD() {
+  console.log("rpf will do bam button");
+  var oReq = new XMLHttpRequest();
+  oReq.open("GET", "http://127.0.1.1/cgi-bin/slicer?fileid=d8b0a092-b1da-45d3-98af-50d32ece8834&pos=chr1:3147732-3356628", true);
+  oReq.responseType = "blob";
+  oReq.onload = function(oEvent) {
+  var blob = oReq.response;
+  console.log("getting blob");
+  var blob = new Blob([oReq.response], {type: "image/png"});
+  console.log("got blob");
+// dna seuqence server http://127.0.0.1/cgi-bin/srvdna?pos=chr1:12345-12500
+  console.log("send");
+  }
+  oReq.onerror=function(e){
+  // ...
+  oReq.send();
+    alert("error");
+  }
+}
+
+var Module = {
+        preRun: [],
+        postRun: [],
+        print: (function() { console.log('print'); })(),
+        printErr: function(text)  { console.log(text); }(),
+        setStatus: function(text) { console.log(text); }(),
+        totalDependencies: 0,
+        monitorRunDependencies: function() { console.log('dependencies'); }(),
+};
+</script> 
+
+
+<script async type="text/javascript" src="l2pwasm.js"></script>
+</head>
+<body style="margin-left:10px;margin-top:5px;margin-right:10px;padding:0px;background-color:#FEFEFA">
+<span id="skybox"> <small>NCI l2p - List of Genes To Pathways.</small></span><span id="notmainmenu"><small>&nbsp;&nbsp;
+<!---
+<a id='gohome' style=;display: none;; href='javascript:l2pMainMenu();'>MainMenu</a>&nbsp;&nbsp;&nbsp;
+---!>
+<a id='gohelp' href='l2phelp.html' target=_blank'>Help</a>&nbsp;&nbsp;&nbsp;
+
+<!-- not quite debugged enough.  fix and add later.
+<a id='disability' href='javascript:l2pDisabilityMenu();'>DisabilityMenu</a>&nbsp;&nbsp;&nbsp;
+-->
+
+</small>
+</span>
+<span id="usrmsg" style="float:right; padding-right:0px;padding-top:0px;margin-top:0;"></span>
+<!-- very small carriage return ... -->
+<hr style="height:1pt; line-height:0pt; visibility:hidden;"/>
+<div id='wrapper'>
+<div id='arena'>
+<img id='bamimg' alt='nci brand logo' src='logo.png '>
+</div>
+<!-- 
+<div id='resizable' class='ui-widget-content'>
+</div>
+-->
+<hr style='height:1pt; visibility:hidden;'/>
+<span id="dashboard">
+<h1>Loading NCI l2p.</h1>
+</span>
+<br>
+<div id="anno">
+</div>
+<div> <!--end wrapper-->
+<br>
+<script type="text/javascript">
+function UpdateUsrMsg(mess) {
+    document.getElementById("usrmsg").innerHTML = mess;
+}
+
+
+if (typeof WebAssembly !== 'object') {
+var nowasmmsg="<h1><font color='ff0000'>WebAssembly is not supported by this browser (try Firefox 60, Chrome 66, Edge 17 , Safari 11.1, Samsung 7.2 or newer).</font></h1><br> The userAgent for this browser is reported to be \"" + window.navigator.userAgent + "\"";
+      document.getElementById("dashboard").innerHTML = nowasmmsg ;
+}
+
+var url = new URL(window.location);
+  // Retrieve params via url.search, passed into ctor .  args to this program/web page
+var params = new URLSearchParams(url.search);
+pos = params.get('pos');
+console.log("pos param = "+pos);
+disability = params.get('disability');
+uuid = params.get('uuid');  // as hex string! example uuid=b1b59908-41e2-4b83-a65a-58bad1215381
+barcode = params.get('barcode'); // example TCRBOA2-N-WEX or TCGA-WC-A88A-01A-11R-A40B-13
+bamfn = params.get('bamfn');  
+// console.log("params = " + " " + disability + " " + pos + " " + uuid  + " " + bamfn); 
+
+
+
+/*
+eehhh ... might use this later ...
+window.onbeforeunload = function() {
+    return 'Are you sure you wish to leave l2p?  (Use MainMenu Link to Navigate to Other Pages)';
+}
+*/
+
+var starth = 0;
+function newupdateimageaction() {
+startresizable();
+var im = document.getElementById('bamimg');
+if (im) {
+starth = im.height;
+// console.log('starth = '+starth); 
+ias = $('#bamimg').imgAreaSelect({ handles: true, onSelectEnd: img_area_select_end, minHeight: starth });
+document.getElementById('resizable').style.width=im.width+'px';
+document.getElementById('resizable').style.height=im.height+'px';
+}
+}
+</script>
+<hr>
+<span id="basement">
+<center>
+<font size="1">
+NCI l2p by Richard Finney : National Cancer Institute : National Institutes of Health - Bethesda, Maryland.
+</font>
+</center>
+</span>
+<hr>
+</body>
+
+<!-- color scheme
+darkgray 32312d
+darkblue 063b5a
+medblue bda14e
+lightblue 559096
+yellow a1c3c4
+lightgray dadada
+ncired A90101
+
+skybox usrmg
+resizable
+dashboard
+anno
+basement
+
+check
+*bamslicer - handle token
+*hook up refseq - need pos box entry lookup -  better refseq track
+*sanitize input
+*place for source code 
+
+todo: 
+check mallocs
+make dragselect work
+settimer to prevent long run script warning or web worker / timeout
+set maximum range
+run script tar view
+slideshow - batch - drag drop 
+script input
+help page
+more info on view screen
+ucsc link
+cleanup
+-->
+</html>
+<body>

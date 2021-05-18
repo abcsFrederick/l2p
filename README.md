@@ -3,6 +3,8 @@
 [![DOI](https://zenodo.org/badge/164483194.svg)](https://zenodo.org/badge/latestdoi/164483194)
 [![GitHub releases](https://img.shields.io/github/release/CCBR/l2p)](https://github.com/CCBR/l2p/releases) [![GitHub issues](https://img.shields.io/github/issues/CCBR/l2p)](https://github.com/CCBR/l2p/issues) [![GitHub license](https://img.shields.io/github/license/CCBR/l2p)](https://github.com/CCBR/l2p/blob/master/LICENSE)
 
+The beta web version is here: https://ccbr.github.io/l2p/ . ( You can copy/paste a whole paper in to see an instant pathway analysis. )
+
 List-to-pathway, or `l2p`, is an R package for gene set enrichment analysis that is _optimized for speed!_ 
 
 `l2p` can be used to determine whether a biological process or function is over-represented in a user-defined gene list. This can be a list of differential expressed genes, or a list of annotated differential bound regions using a tool like [uropa](https://www.nature.com/articles/s41598-017-02464-y) or [homer](http://homer.ucsd.edu/homer/ngs/annotation.html).  

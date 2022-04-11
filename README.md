@@ -14,26 +14,26 @@ List-to-pathway, or `l2p`, is an R package for gene set enrichment analysis that
 
 The latest package of `l2p` can be downloaded directly from Github. Here we describe each method in more detail.
 
-**Option 1:** Download and install latest R package, `l2p_0.0-7.tar.gz`, from command-line:
+**Option 1:** Download and install latest R package, `l2p_0.0-9.tar.gz`, from command-line:
 ```bash
 # Get l2p from Github
-wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-7.tar.gz
+wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-9.tar.gz
 # Install as a site package 
-R CMD INSTALL l2p_0.0-7.tar.gz
+R CMD INSTALL l2p_0.0-9.tar.gz
 ```
  
 **Option 2:** Install `l2p` within an R console or RStudio session:
 ```R
 # Install from R console or 
-install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-7.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-9.tar.gz", repos=NULL) 
 ```
 
 **Option 3:** Download and install `l2p` using conda:
 ```bash
 # Download Package
-wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_7-r35_0.tar.bz2?raw=true -O r-l2p-0.0_7-r35_0.tar.bz2
+wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_9-r35_0.tar.bz2?raw=true -O r-l2p-0.0_9-r35_0.tar.bz2
 # Install in a conda enviroment
-conda install r-l2p-0.0_7-r35_0.tar.bz2
+conda install r-l2p-0.0_9-r35_0.tar.bz2
 ```
 
 > _**Please Note:**_ It is assumed [R](https://cran.r-project.org/doc/manuals/R-admin.html) is installed on the target system. 
@@ -69,19 +69,20 @@ Here is a description of each parameter:
  - **PANTH**: databases for protein analysis through evolutionary relationships - http://www.pantherdb.org/
  - **PID**: Pathway interaction database: legacy database from Carl Schaefer & buddies at NCI
  - **REACTOME**: curated database of biological pathways - https://reactome.org/
- - **WikiPathways**: community resource for biological pathways - https://www.wikipathways.org
+ - **WikiPathways**: community resource for biological pathways 
  - **C1**: MSigDB positional gene sets for each human chromosome and cytogenetic band.
  - **C2**: MSigDB curated gene sets from online pathway databases, publications in PubMed, and experts.
  - **C3**: MSigDB motif gene sets based on conserved cis-regulatory motifs from comparative analysis
  - **C4**: MSigDB computational gene sets defined by mining large collections of cancer-oriented microarray data.
  - **C6**: MSigDB oncogenic gene sets defined directly from microarray data from cancer gene perturbations.
  - **C7**: MSigDB immunologic gene sets  from microarray data from immunologic studies.
+ - **C8**: MsigDB markers identified in single-cell sequencing studies of human tissuetps://www.wikipathways.org
 
 > _**Please Note:**_ MSigDB "ARCHIVED" pathways are not provided.  MSigDB category "C5" is not there. Use "GO" category (from NCBI biosystems), instead.
 
 #### Example function call
 ```R 
-x=l2pwcats(as.vector(genelist),"GO,WikiPathways,C4,C5,C6")
+
 ```
 
 #### Output

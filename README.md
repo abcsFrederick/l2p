@@ -7,7 +7,9 @@ The beta web version is here: https://ccbr.github.io/l2p/ . ( You can copy/paste
 
 List-to-pathway, or `l2p`, is an R package for gene set enrichment analysis that is _optimized for speed!_ 
 
-`l2p` can be used to determine whether a biological process or function is over-represented in a user-defined gene list. This can be a list of differential expressed genes, or a list of annotated differential bound regions using a tool like [uropa](https://www.nature.com/articles/s41598-017-02464-y) or [homer](http://homer.ucsd.edu/homer/ngs/annotation.html).  
+`l2p` can be used to determine whether a biological process or function is over-represented in a user-defined gene list. This can be a list of differential expressed genes, or a list of annotated differential bound regions using a tool like [uropa](https://www.nature.com/articles/s41598-017-02464-y) or [homer](http://homer.ucsd.edu/homer/ngs/annotation.html). 
+
+l2psupp is the "l2p supplemental" package which contains routines for converting gene symbols.  l2psupp 
 
 
 ## Installation
@@ -20,12 +22,18 @@ The latest package of `l2p` can be downloaded directly from Github. Here we desc
 wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-9.tar.gz
 # Install as a site package 
 R CMD INSTALL l2p_0.0-9.tar.gz
+# install l2psupp ( "l2p supplemental")
+wget https://github.com/CCBR/l2p/raw/master/l2psupp_0.0-9.tar.gz
+# Install as a site package 
+R CMD INSTALL l2psupp_0.0-9.tar.gz
 ```
  
 **Option 2:** Install `l2p` within an R console or RStudio session:
 ```R
 # Install from R console or 
 install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-9.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2psupp_0.0-9.tar.gz", repos=NULL) 
+
 ```
 
 **Option 3:** Download and install `l2p` using conda:
@@ -34,27 +42,35 @@ install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-9.tar.gz", repo
 wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_9-r35_0.tar.bz2?raw=true -O r-l2p-0.0_9-r35_0.tar.bz2
 # Install in a conda enviroment
 conda install r-l2p-0.0_9-r35_0.tar.bz2
+wget https://github.com/CCBR/l2p/blob/master/r-l2psupp-0.0_9-r35_0.tar.bz2?raw=true -O r-l2p-0.0_9-r35_0.tar.bz2
+conda install r-l2psupp-0.0_9-r35_0.tar.bz2
+
 ```
 
 > _**Please Note:**_ It is assumed [R](https://cran.r-project.org/doc/manuals/R-admin.html) is installed on the target system. 
 
 ## Usage
 ```
-# Available functions
+# Available functions in l2p
 l2p(genelist)               # return data frame with proabilities that arg (list of genes) matches a pathway
 l2pgetlongdesc(acc)         # get the full (possibly very long) description for pathway accession identifer string
 l2pgetgenes4acc(acc)        # get the list all the genes for a pathway, use the accession.
-m2h(mousegenelist)          # return list of human genes for input list of mouse gene names
-a2a(genelist,fromspecies,tospecies) # return list of source species genes and return list of orthologs for destination species
 
 # Convenience Functions:
 l2pu(list,universe)         # return data frame with probabilities with list of genes and user specified universe
 l2pwcats(list,categeories)  # return data frome with categories specified
 l2puwcats(list,universe,categories) # same as l2pwcats but also with a universe
 l2pver                              # return l2p version
+
+
+# Available functions in l2psupp 
+m2h(mousegenelist)          # return list of human genes for input list of mouse gene names
+a2a(genelist,fromspecies,tospecies) # return list of source species genes and return list of orthologs for destination species
+updategenes(genelist , [trust=1] , [ legitonly=0 ] )
+)
 ```
 
-`l2p` is now supporting R style argument passing.
+The `l2p` function supopors R style arguments    :
 Here is a description of each parameter: 
  - universe: list of gene names
  - categories: see categories below

@@ -498,7 +498,7 @@ fprintf(stderr,"NOTE: Not sure what's up. Can't parse categroies \n");  fflush(N
         }
     }
 categories_pattern_to_strings(catspat,tmps);
-// fprintf(stderr,"rpfdbg categories here 9, catspats=%x = \"%s\"\n",catspat,tmps);   fflush(NULL); 
+// fprintf(stderr,"GOTEST rpfdbg categories here 9, catspats=%x = \"%s\"\n",catspat,tmps);   fflush(NULL); 
 
     if (Rf_isNull(customfn)) {} else strncpy(custom_file,CHAR(STRING_ELT(customfn, 0)),PATH_MAX-2);
     if (Rf_isNull(universefn)) {} else strncpy(universe_file,CHAR(STRING_ELT(universefn, 0)),PATH_MAX-2);
@@ -561,7 +561,9 @@ categories_pattern_to_strings(catspat,tmps);
     }
     if (in_universe_original) { free(in_universe_original); in_universe_original = (void *)0; }
 
+// fprintf(stderr,"GOTEST before setup_used_paths\n");   fflush(NULL); 
     u = setup_used_paths(&num_used_paths, catspat,universe_file,in_universe_cnt,user_in_univ_ptr,custom_file,&real_universe_cnt,&real_universe,len_of_user_pws,mycustompw);
+// fprintf(stderr,"GOTEST after setup_used_paths\n");   fflush(NULL); 
 //fprintf(stderr,"in gpccdbg  after setup_used_path cats=%x after setup_used_paths() \n",catspat);  fflush(stderr);
 // NO, freed in setup_used_paths    if (user_in_univ_ptr) { free(user_in_univ_ptr); user_in_univ_ptr = (void *)0; }
 
@@ -628,6 +630,7 @@ or
              PROTECT(odds_ratio=Rf_allocVector(REALSXP, num_used_paths));   // 16
         }
         protect_cnt += maxflds;
+// fprintf(stderr,"GOTEST here 1\n");  fflush(stderr); 
         for (ui=0 ; ui<num_used_paths ; ui++)
         {
             uptr = (u+ui);
@@ -648,6 +651,7 @@ or
             SET_STRING_ELT(pathway_id, ui, mkChar(uptr->acc) );
     
             category_code_to_string( uptr->category , tmps);
+// fprintf(stderr,"GOTEST tmps=%s\n",tmps);  fflush(stderr); 
             SET_STRING_ELT(category, ui, mkChar(tmps));
     
             INTEGER(number_hits)[ui] = uptr->hitcnt; 
@@ -903,7 +907,7 @@ Sum_of_pathways         Sum of unique pathways where pathway genes are also foun
             if ( (uptr->a == 0) && (uptr->b == 0) )
                 REAL(percent_gene_hits_per_pathway)[ui] = (double)0;
             else
-                REAL(percent_gene_hits_per_pathway)[ui] = (double)uptr->a/(double)((uptr->a)+(uptr->b)); // 3
+                REAL(percent_gene_hits_per_pathway)[ui] = (double)((double)uptr->a/(double)((uptr->a)+(uptr->b))*100.0); // 3
             INTEGER(number_hits)[ui] =  uptr->a;                   // 4 
             INTEGER(number_misses)[ui] =  uptr->b;                 // 5 
             INTEGER(number_user_genes)[ui] = uptr->c;              // 6 

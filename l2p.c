@@ -3411,9 +3411,9 @@ fprintf(stderr,"rpf after benjaminihochberg\n"); fflush(stderr);
     }
     else if (calc_option == CALC_OPTION_PERMUTE) // permute
     {
-fprintf(stderr,"in l2pfunc() permute2 rpf num_used_paths=%d, calc_option=2 num_permutes=%d\n",num_used_paths,num_permutes); 
+fprintf(stderr,"in l2pfunc() permute2 rpf num_used_paths=%d, calc_option=2 (CALC_OPTION_PERMUTE) num_permutes=%d\n",num_used_paths,num_permutes); 
 // xxx
-        if (num_permutes < 10) 
+        if (num_permutes < 100) 
         {
 fprintf(stderr,"Warning: overridd num_permutes of %d.  Setting to default %d (PERMUTE_DEFAULT_LOW).\n",num_permutes,PERMUTE_DEFAULT_LOW); fflush(NULL);
             num_permutes = PERMUTE_DEFAULT_LOW;
@@ -3451,7 +3451,7 @@ fprintf(stderr,"in l2pfunc() permute3 rpf num_used_paths=%d, calc_option=2\n",nu
         }
 // xxx
 fprintf(stderr,"rpf permute3 in lp2func(), before permute3\n"); fflush(NULL);
-        if (num_permutes < 10) 
+        if (num_permutes < 100) 
         {
 fprintf(stderr,"Warning: overridd num_permutes of %d.  Setting to default %d (PERMUTE_DEFAULT_LOW).\n",num_permutes,PERMUTE_DEFAULT_LOW); fflush(NULL);
             num_permutes = PERMUTE_DEFAULT_LOW;
@@ -3565,7 +3565,8 @@ void print_header(void)
  /* 8  */ printf("pathwayaccessionidentifier\t");// canonical accession ( if available, otherwise assigned by us )
  /* 9  */ printf("category\t");                // KEGG,REACTOME,GO,PANT(=PANTHER),PID=(pathway interaction database)  *was "source"*
  /* 10 */ printf("pathwayname\t");             // Name of pathway
- /* 11 */ printf("genes\t");               // genes_space_separated   HUGO genes from user that hit the pathway
+            // last field, no tab
+ /* 11 */ printf("genes");               // genes_space_separated   HUGO genes from user that hit the pathway
           printf("\n");
 }
 
@@ -3875,7 +3876,9 @@ struct used_path_type *setup_used_paths(unsigned int *num_used_paths, unsigned i
     used_index = 0;
     for (i=0 ; i<numpws ; i++)
     {
+// fprintf(stderr,"in GOTEST i=%d pws[i].category=0x%x pat=0x%x\n",i,pws[i].category,catspat); 
         if ((pws[i].category & catspat) == 0) continue;
+// fprintf(stderr,"in GOTEST KEEP i=%d pws[i].category=0x%x pat=0x%x\n",i,pws[i].category,catspat); 
         this_egids = (unsigned int *)malloc(sizeof(unsigned int)*pws[i].numgenes);
         if (this_egids == (void *)0)
         {
@@ -4248,26 +4251,26 @@ fprintf(stderr,"in main(), before  l2pfunc num_permutes=%u\n",num_permutes); ffl
            fdr_for_output = uptr->fdr;
            if (precise_flag)
            {
-               printf("%20.18f\t%20.18f\t%11.9f\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t%s\t",
+               printf("%20.18f\t%20.18f\t%11.9f\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t",
                    uptr->gpcc_p,     fdr_for_output, uptr->enrichment_score,
                    uptr->a, uptr->b, uptr->c, uptr->d,
                    uptr->acc, tmps,
-                   uptr->name, type2string(uptr->category >> 28));
+                   uptr->name); // type2string(uptr->category >> 28))
            }
            else
            {
-               printf("%11.9f\t%11.9f\t%11.9f\t%11.9f\t%11.7f\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t%s\t",
+               printf("%11.9f\t%11.9f\t%11.9f\t%11.9f\t%11.7f\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t",
                    uptr->gpcc_p,     
                    fdr_for_output, uptr->pval4,uptr->fdr4,uptr->enrichment_score,
                    uptr->a, uptr->b, uptr->c, uptr->d,
                    uptr->acc, tmps,
-                   uptr->name, type2string(uptr->category >> 28));
+                   uptr->name); // type2string(uptr->category >> 28))
 #if 0
-               printf("%11.9f\t%11.9f\t%11.7f\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t%s\n",
+               printf("%11.9f\t%11.9f\t%11.7f\t%d\t%d\t%d\t%d\t%s\t%s\t%s\n",
                    uptr->pval,     fdr_for_output, uptr->enrichment_score,
                    uptr->a, uptr->b, uptr->c, uptr->d,
                    uptr->acc, tmps,
-                   uptr->name, type2string(uptr->category >> 28));
+                   uptr->name, );
            printf("%11.9f\t%11.9f\t%11.7f\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t%s\n",
                uptr->pval,     fdr_for_output, uptr->enrichment_score,
                uptr->a, uptr->b, uptr->c, uptr->d,
@@ -4357,20 +4360,20 @@ d=u-list
            if (precise_flag)
            {
 // xxx aaa
-               printf("%20.18f\t%20.18f\t%11.9f\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t%s\t",
+               printf("%20.18f\t%20.18f\t%11.9f\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t",
                    uptr->pval4,     fdr_for_output, uptr->enrichment_score,
                    uptr->a, uptr->b, uptr->c, uptr->d,
                    uptr->acc, tmps,
-                   uptr->name, type2string(uptr->category >> 28));
+                   uptr->name); 
            }
            else
            {
-               printf("%11.9f\t%11.9f\t%11.9f\t%11.9f\t%11.7f\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t%s\t",
+               printf("%11.9f\t%11.9f\t%11.9f\t%11.9f\t%11.7f\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t",
                    uptr->pval4,     
                    fdr_for_output, uptr->pval4,uptr->fdr4,uptr->enrichment_score,
                    uptr->a, uptr->b, uptr->c, uptr->d,
                    uptr->acc, tmps,
-                   uptr->name, type2string(uptr->category >> 28));
+                   uptr->name); //  type2string(uptr->category >> 28))
 #if 0
                printf("%11.9f\t%11.9f\t%11.7f\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t%s\n",
                    uptr->pval,     fdr_for_output, uptr->enrichment_score,

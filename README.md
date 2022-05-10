@@ -41,9 +41,9 @@ install.packages("https://github.com/CCBR/l2p/raw/master/l2psupp_0.0-11.tar.gz",
 # Download Package
 wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_11-r35_0.tar.bz2?raw=true -O r-l2p-0.0_10-r35_0.tar.bz2
 # Install in a conda enviroment
-conda install r-l2p-0.0_10-r35_0.tar.bz2
+conda install r-l2p-0.0_11-r35_0.tar.bz2
 wget https://github.com/CCBR/l2p/blob/master/r-l2psupp-0.0_11-r35_0.tar.bz2?raw=true -O r-l2psupp-0.0_10-r35_0.tar.bz2
-conda install r-l2psupp-0.0_10-r35_0.tar.bz2
+conda install r-l2psupp-0.0_11-r35_0.tar.bz2
 
 ```
 

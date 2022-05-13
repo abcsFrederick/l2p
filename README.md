@@ -66,8 +66,9 @@ l2pver                              # return l2p version
 # Available functions in l2psupp 
 m2h(mousegenelist)          # return list of human genes for input list of mouse gene names
 a2a(genelist,fromspecies,tospecies) # return list of source species genes and return list of orthologs for destination species
-updategenes(genelist , [trust=1] , [ legitonly=0 ] )
-)
+updategenes(genelist , [trust=1] , [ legitonly=0 ] )   # update old gene names to current HGNC (HUGO) gene names.
+egid2hugos(entrez_gene_list) # get HGNC names for entrez gene ids
+ 
 ```
 
 The `l2p` function supopors R style arguments    :

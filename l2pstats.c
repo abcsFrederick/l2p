@@ -162,6 +162,16 @@ static double left,right,twotail;
 
 double exact22(int n11_,int n12_,int n21_,int n22_)
 {
+#if 1
+if (1)
+{
+double left;
+double right;
+double two;
+(void) kt_fisher_exact(n11_, n12_, n21_, n22_, &left, &right, &two);
+return two;
+}
+#endif
 #if 0
   double prob = 0.0;
   double n11_ = parseInt("0"+n11,10);
@@ -276,6 +286,16 @@ double exact22_oneside(int n11_,int n12_,int n21_,int n22_, int dbg)
   n12old=n12_;
   n21old=n21_;
   n22old=n22_;
+#endif
+#if 1
+if (1)
+{
+double left;
+double right;
+double two;
+(void) kt_fisher_exact(n11_, n12_, n21_, n22_, &left, &right, &two);
+return right;
+}
 #endif
   if(n11_<0) n11_ *= -1;
   if(n12_<0) n12_ *= -1;

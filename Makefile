@@ -5,7 +5,6 @@ RM=rm -f
 CFLAGS=-Wextra -Wall -O2 -funroll-loops -march=native -flto -pipe -minline-all-stringops 
 LDFLAGS=-flto -lm
 
-
 #debug
 #CFLAGS=-g -Wall -Werror
 #LDFLAGS=-lm
@@ -34,7 +33,7 @@ LDFLAGS=-flto -lm
 
 LDLIBS=-lm -lpthread
 
-SRCS=l2p.c pwgenes.c l2pstats.c utilfuncs.c 
+SRCS=l2p.c pwgenes.c l2pstats.c utilfuncs.c  mitlicstats.c
 
 OBJS=$(subst .c,.o,$(SRCS))
 

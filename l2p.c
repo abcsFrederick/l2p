@@ -4121,7 +4121,7 @@ void print_permute_header(void)
     printf("pval\t"); // uptr->pval 
     printf("p_permute_over\t"); // uptr->p_permute_over 
     printf("p_permute_under\t"); // uptr->p_permute_under 
-    printf("pval3\t"); // uptr->pval3 
+    printf("p_pval\t");
     printf("acc\t"); // uptr->acc 
     printf("tmps\t"); // tmps 
     printf("name"); // uptr->name); 
@@ -4216,7 +4216,7 @@ fprintf(stderr,"in main(), before  l2pfunc num_permutes=%u\n",num_permutes); ffl
             printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%20.18f\t%11.2e\t%11.2e\t%11.2e\t%11.2e\t%s\t%s\t%s\t",
                           uptr->a, uptr->c, uptr->b, uptr->d,
                           uptr->countunder, uptr->countequal, uptr->countover, uptr->numfixedgenes, uptr->OR,
-                          uptr->pval,  uptr->p_permute_over, uptr->p_permute_under, uptr->pval3,
+                          uptr->pval,  uptr->p_permute_over, uptr->p_permute_under, uptr->permute_pval,
                           uptr->acc, tmps, uptr->name);
             mean_gpct = (float) uptr->pathhits_gpsum/(float) uptr->hitcnt;
             categories_pattern_to_strings(uptr->category,tmps);

@@ -370,7 +370,7 @@ SEXP l2p(SEXP lst, SEXP categories, SEXP universe, SEXP custompws, SEXP customfn
     SEXP category = (SEXP)0;                   // 10 KEGG,REACTOME,GO,PANT(=PANTHER),PID=(pathway interaciton database)
     SEXP pathway_name = (SEXP)0;                // 11 Name of pathway
     SEXP genesinpathway = (SEXP)0;             // 12 genes_space_separated   HUGO genes from user that hit the pathway
-    SEXP pval3 = (SEXP)0;     
+    SEXP permute_pval = (SEXP)0;     
     SEXP universe_count = (SEXP)0; 
     SEXP user_input_count = (SEXP)0; 
     SEXP odds_ratio = (SEXP)0; 
@@ -770,7 +770,7 @@ Sum_of_pathways         Sum of unique pathways where pathway genes are also foun
         PROTECT(pval=Rf_allocVector(REALSXP, num_used_paths ));
         PROTECT(fdr=Rf_allocVector(REALSXP, num_used_paths));
         PROTECT(odds_ratio=Rf_allocVector(REALSXP, num_used_paths ));
-        PROTECT(pval3=Rf_allocVector(REALSXP, num_used_paths ));
+        PROTECT(permute_pval=Rf_allocVector(REALSXP, num_used_paths ));
         PROTECT(enrichment_score=Rf_allocVector(REALSXP, num_used_paths));
         PROTECT(percent_gene_hits_per_pathway =Rf_allocVector(REALSXP, num_used_paths));
         PROTECT(number_hits=Rf_allocVector(INTSXP, num_used_paths));
@@ -790,7 +790,7 @@ Sum_of_pathways         Sum of unique pathways where pathway genes are also foun
             fdr_for_output = uptr->fdr;
             REAL(fdr)[ui] =   fdr_for_output;                      // 1 
             REAL(pval)[ui] = uptr->OR;                             // 2 
-            REAL(pval)[ui] = uptr->pval3;                          // 3 
+            REAL(pval)[ui] = uptr->permute_pval;                          // 3 
             REAL(enrichment_score)[ui] = uptr->enrichment_score;   // 4 
             if ( (uptr->a == 0) && (uptr->b == 0) )
                 REAL(percent_gene_hits_per_pathway)[ui] = (double)0;
@@ -828,7 +828,7 @@ Sum_of_pathways         Sum of unique pathways where pathway genes are also foun
         SET_VECTOR_ELT( Rret,2, pval);
         SET_VECTOR_ELT( Rret,3, fdr);
         SET_VECTOR_ELT( Rret,4, odds_ratio);
-        SET_VECTOR_ELT( Rret,5, pval3);
+        SET_VECTOR_ELT( Rret,5, permute_pval);
         SET_VECTOR_ELT( Rret,6, enrichment_score);
         SET_VECTOR_ELT( Rret,7, percent_gene_hits_per_pathway);
         SET_VECTOR_ELT( Rret,8, number_hits);
@@ -847,13 +847,30 @@ Sum_of_pathways         Sum of unique pathways where pathway genes are also foun
     
         PROTECT(nam = allocVector(STRSXP, maxflds));     // names attribute (column names)
         protect_cnt++;
+/*
+     1	"pathway_name"
+     2	"category"
+     3	"pval"
+     4	"fdr"
+     5	"enrichment_score"
+     6	"percent_gene_hits_per_pathway"
+     7	"number_hits"
+     8	"number_misses"
+     9	"number_user_genes"
+    10	"total_genes_minus_input"
+    11	"pathway_id"
+    12	"pathway_type"
+    13	"genesinpathway"
+*/
     
         SET_STRING_ELT( nam, 0,  mkChar("pathway_name"));
         SET_STRING_ELT( nam, 1,  mkChar("category"));
+// "pathway_name"	"category"	"pval"	"fdr"	"enrichment_score"	"percent_gene_hits_per_pathway"	"number_hits"	"number_misses"	"number_user_genes"	"total_genes_minus_input"	"pathway_id"	"pathway_type"	"genesinpathway"
+// "ko00010"	"Glycolysis / Gluconeogenesis"	"KEGG"	0.642755317070867	1	-0.0270562770562772	0.0238095238095238	1	41	89	3607	"ko00010"	""	"PGAM2"
         SET_STRING_ELT( nam, 2,  mkChar("pval"));
         SET_STRING_ELT( nam, 3,  mkChar("fdr"));
         SET_STRING_ELT( nam, 4,  mkChar("OR"));
-        SET_STRING_ELT( nam, 5,  mkChar("pval3"));
+        SET_STRING_ELT( nam, 5,  mkChar("permute_pval"));
         SET_STRING_ELT( nam, 6,  mkChar("enrichment_score"));
         SET_STRING_ELT( nam, 7,  mkChar("percent_gene_hits_per_pathway"));
         SET_STRING_ELT( nam, 8,  mkChar("number_hits"));

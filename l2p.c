@@ -1244,11 +1244,15 @@ a=hits
 b=thispw-hits
 c=list
 d=u-list
-*/
         a2 = localhitcnt;
         b2 = uptr->numfixedgenes - localhitcnt;
         c2 = incnt;
         d2 = real_universe_cnt - incnt;
+*/
+a2 = localhitcnt;
+b2 = uptr->numfixedgenes - localhitcnt;
+c2 = incnt-localhitcnt;
+d2 = real_universe_cnt - ( uptr->numfixedgenes ) - incnt + localhitcnt;
 
         if (oneside)
         {
@@ -1276,8 +1280,14 @@ b2 = uptr->numfixedgenes - localhitcnt;
 c2 = incnt-localhitcnt;
 d2 = real_universe_cnt - ( uptr->numfixedgenes ) - incnt + localhitcnt;
             pv2 = exact22_oneside((uint32_t)a2, (uint32_t)b2, (uint32_t)c2, (uint32_t)d2,0); // last arg is debug flag
-// fprintf(stderr,"dbg pv = %f pv2=%f %d %d %d %d %d %d %d %d %s\n",pv,pv2,u,p,h,l,a2,b2,c2,d2,uptr->acc); 
             pv = pv2;
+#if 0
+ if (strcmp(uptr->acc,"ko00010") == 0)
+ {
+ fprintf(stderr,"ko00010 %u %u %u %u  %18.16f numfixedgenes=%u\n",a2,b2,c2,d2,pv2,uptr->numfixedgenes); 
+ }
+// fprintf(stderr,"dbg pv = %f pv2=%f %d %d %d %d %d %d %d %d %s\n",pv,pv2,u,p,h,l,a2,b2,c2,d2,uptr->acc); 
+#endif
 #endif
         }
         else
@@ -3723,11 +3733,12 @@ unsigned int *get_used_universe(struct used_path_type *u, unsigned int num_used,
             k++;
             if (k >= maxelems)
             {
-fprintf(stderr,"in get_used_universe ERROR i=%d k=%d\n",i,k);  fflush(stderr);
-exit(0);
+                fprintf(stderr,"in get_used_universe ERROR i=%d k=%d\n",i,k);  fflush(stderr);
+                exit(0);
             }
         }
     }
+
 #if RADIX_SORT
     radix_ui(tempverse,k);
 #else
@@ -3745,8 +3756,8 @@ exit(0);
        }
        prev = ui;
     }
-    *real_universe_cnt_ptr = j;
     free(tempverse);
+    *real_universe_cnt_ptr = j;
     return (unsigned int *)real_universe;
 }
 
@@ -4094,7 +4105,21 @@ unsigned int prev;
     *num_used_paths = used_index;
     if (user_universe_genes) free(user_universe_genes);
 
+// fprintf(stderr,"uvcheck before *real_universe_cnt_ptr=%d\n",*real_universe_cnt_ptr); 
     *real_universe = get_used_universe(u, used_index, real_universe_cnt_ptr);
+// fprintf(stderr,"uvcheck after *real_universe_cnt_ptr=%d\n",*real_universe_cnt_ptr); 
+#if 0
+ FILE *fptmp;
+ fptmp=fopen("tmpu.chk","w");
+ for (i=0;i<*real_universe_cnt_ptr;i++)
+ {
+ char *zz;
+ zz = egid2hugo(*((*real_universe)+i));
+ fprintf(fptmp,"%s\n",zz);
+ }
+ fclose(fptmp);
+#endif
+
 #if 0
 clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
 #define BILLION  1000000000.0;
@@ -4592,6 +4617,5 @@ C – total DEG count - number of hits
 D – number of hits
 Odds_ratio              odds ratio
 Sum_of_pathways         Sum of unique pathways where pathway genes are also found
- 
 */
 

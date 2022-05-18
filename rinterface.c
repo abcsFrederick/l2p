@@ -336,7 +336,7 @@ SEXP l2p(SEXP lst, SEXP categories, SEXP universe, SEXP custompws, SEXP customfn
     int permute_flag = 0;
     int gpcc_flag = 0;
     int user_universe_flag = 0;
-    int user_incnt = 0;
+    unsigned int user_incnt = 0;
     int oneside = 0;
     unsigned int num_used_paths = 0;
     unsigned int len = 0;
@@ -518,12 +518,12 @@ categories_pattern_to_strings(catspat,tmps);
             j++;
         }
     }
-    user_incnt = j;
+    user_incnt = (unsigned int )j;
 
     len = length(universe);
     if (user_universe_flag == 1)
     {
-        user_in_univ_ptr = (unsigned int *)malloc(sizeof(unsigned int)*len);             // remember to free this
+        user_in_univ_ptr = (unsigned int *)malloc(sizeof(unsigned int)*len);        // remember to free this
         if (!user_in_univ_ptr) return (SEXP) -1;
         in_universe_original = (unsigned int *)malloc(sizeof(unsigned int)*len);    // remember to free this
         if (!in_universe_original) 
@@ -561,11 +561,53 @@ categories_pattern_to_strings(catspat,tmps);
     }
     if (in_universe_original) { free(in_universe_original); in_universe_original = (void *)0; }
 
+// xxx fix
 // fprintf(stderr,"GOTEST before setup_used_paths\n");   fflush(NULL); 
     u = setup_used_paths(&num_used_paths, catspat,universe_file,in_universe_cnt,user_in_univ_ptr,custom_file,&real_universe_cnt,&real_universe,len_of_user_pws,mycustompw);
 // fprintf(stderr,"GOTEST after setup_used_paths\n");   fflush(NULL); 
 //fprintf(stderr,"in gpccdbg  after setup_used_path cats=%x after setup_used_paths() \n",catspat);  fflush(stderr);
 // NO, freed in setup_used_paths    if (user_in_univ_ptr) { free(user_in_univ_ptr); user_in_univ_ptr = (void *)0; }
+    
+#if 0
+ FILE *fptmp=fopen("tmp.uig.preint","w");
+ for (ui=0;ui<user_incnt;ui++)
+ {
+ char *zz;
+ zz = egid2hugo(*(user_in_genes+ui));
+ fprintf(fptmp,"%s\n",zz);
+ }
+ fclose(fptmp);
+#endif
+    
+// xxx
+    unsigned int *tmp_in_genes;
+    unsigned int uj,tmpegid;
+    unsigned int *uiptr;
+    tmp_in_genes = (unsigned int *)malloc(sizeof(unsigned int)*user_incnt);    // remember to free this
+    for (ui=uj=0;ui<user_incnt;ui++)
+    {
+         tmpegid = *(user_in_genes+ui);
+         uiptr = (unsigned int *)bsearch(&tmpegid,real_universe,real_universe_cnt,sizeof(unsigned int),cmp_ui);
+         if (uiptr)
+         {
+             *(tmp_in_genes+uj) = *uiptr;
+             uj++;
+         }
+    }
+    user_incnt = uj;
+    memcpy(user_in_genes,tmp_in_genes,user_incnt*sizeof(unsigned int));
+    free(tmp_in_genes);
+
+#if 0
+ FILE *fptmp2=fopen("tmp.uig.afterint","w");
+ for (ui=0;ui<user_incnt;ui++)
+ {
+ char *zzz;
+ zzz = egid2hugo(*(user_in_genes+ui));
+ fprintf(fptmp2,"%s\n",zzz);
+ }
+ fclose(fptmp2);
+#endif
 
 // fprintf(stderr,"gpccdbg in l2p, before l2pfunc_R gpcc_flag=%d user_incnt=%u\n",gpcc_flag,user_incnt); fflush(stderr); 
     GetRNGstate();

@@ -16,34 +16,34 @@ l2psupp is the "l2p supplemental" package which contains routines for converting
 
 The latest package of `l2p` can be downloaded directly from Github. Here we describe each method in more detail.
 
-**Option 1:** Download and install latest R package, `l2p_0.0-12.tar.gz`, from command-line:
+**Option 1:** Download and install latest R package, `l2p_0.0-13.tar.gz`, from command-line:
 ```bash
 # Get l2p from Github
-wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-12.tar.gz
+wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-13.tar.gz
 # Install as a site package 
-R CMD INSTALL l2p_0.0-12.tar.gz
+R CMD INSTALL l2p_0.0-13.tar.gz
 # install l2psupp ( "l2p supplemental")
-wget https://github.com/CCBR/l2p/raw/master/l2psupp_0.0-12.tar.gz
+wget https://github.com/CCBR/l2p/raw/master/l2psupp_0.0-13.tar.gz
 # Install as a site package 
-R CMD INSTALL l2psupp_0.0-12.tar.gz
+R CMD INSTALL l2psupp_0.0-13.tar.gz
 ```
  
 **Option 2:** Install `l2p` within an R console or RStudio session:
 ```R
 # Install from R console or 
-install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-12.tar.gz", repos=NULL) 
-install.packages("https://github.com/CCBR/l2p/raw/master/l2psupp_0.0-12.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-13.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2psupp_0.0-13.tar.gz", repos=NULL) 
 
 ```
 
 **Option 3:** Download and install `l2p` using conda:
 ```bash
 # Download Package
-wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_12-r35_0.tar.bz2?raw=true -O r-l2p-0.0_12-r35_0.tar.bz2
+wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_13-r35_0.tar.bz2?raw=true -O r-l2p-0.0_13-r35_0.tar.bz2
 # Install in a conda enviroment
-conda install r-l2p-0.0_12-r35_0.tar.bz2
-wget https://github.com/CCBR/l2p/blob/master/r-l2psupp-0.0_12-r35_0.tar.bz2?raw=true -O r-l2psupp-0.0_12-r35_0.tar.bz2
-conda install r-l2psupp-0.0_12-r35_0.tar.bz2
+conda install r-l2p-0.0_13-r35_0.tar.bz2
+wget https://github.com/CCBR/l2p/blob/master/r-l2psupp-0.0_13-r35_0.tar.bz2?raw=true -O r-l2psupp-0.0_13-r35_0.tar.bz2
+conda install r-l2psupp-0.0_13-r35_0.tar.bz2
 
 ```
 

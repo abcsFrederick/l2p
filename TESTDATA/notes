@@ -1,0 +1,290 @@
+
+Set 1: circ set.1.circ.top100.updated.txt The circular RNome of primary breast cancer
+
+The circular RNome of primary breast cancer
+    Genome Res. March 2019 vol. 29 no. 3 356-366
+    Supplemental_Tables_S1_S2_S3.xlsx
+
+from Supplemental Material
+Supplemental_Tables_S1_S2_S3.xlsx
+Get top 100 genes from table 1 of spread sheet (sorted on column b : "Number of samples with at least 5 junction reads", get top 100 genes column E , "gene name")
+
+processing: cat set.1.circ.txt | grep "[A-Z]" | head -106 | sort | uniq  | ../updategenes | sort -k3,3n  > set.1.circ.top100.updated.txt
+
+
+Set 2: brca brca.update.set2.txt The DEGs between BRCA and normal tissues.
+The DEGs between BRCA and normal tissues.
+Pei, J., Wang, Y. & Li, Y. Identification of key genes controlling breast cancer stem cell characteristics via stemness indices analysis. J Transl Med 18, 74 (2020). https://doi.org/10.1186/s12967-020-02260-9
+from Supplementary information Additional file 1: Table S1.  The DEGs between BRCA and normal tissues.
+
+looks like this :
+gene	conMean	treatMean	logFC	pValue	fdr
+CAVIN2	44.5082640973451	3.14661203140667	-3.8222020197854	3.19E-67	1.48E-63
+VEGFD	15.5574163274336	0.551037376813345	-4.81930849677945	1.76E-67	1.48E-63
+
+
+Set 3: melanoma melanoma.raw.table.s18.eqtl.txt Cell-type–specific eQTL of primary melanocytes facilitates identification of melanoma susceptibility genes
+
+Cell-type–specific eQTL of primary melanocytes facilitates identification of melanoma susceptibility genes
+
+    Tongwu Zhang1,7, Jiyeon Choi1,7, Michael A. Kovacs1, Jianxin Shi2, Mai Xu1, NISC Comparative Sequencing Program9, Melanoma Meta-Analysis Consortium10, Alisa M. Goldstein3, Adam J. Trower4, D. Timothy Bishop4, Mark M. Iles4, David L. Duffy5, Stuart MacGregor5, Laufey T. Amundadottir1, Matthew H. Law5, Stacie K. Loftus6, William J. Pavan6,8 and Kevin M. Brown1,8 
+
+From suplemental table
+https://genome.cshlp.org/content/suppl/2018/10/17/gr.233304.117.DC1/Supplemental_Tables.xlsx
+
+From Table S18 ( "eQTL gene") 
+
+
+Set 4: sexspecificcovid sexspecficcovid.updated.txt Sex-specific patterns of autoantibody response to SARS-CoV-2 infection.
+Liu, Y., Ebinger, J.E., Mostafa, R. et al. Paradoxical sex-specific patterns of autoantibody response to SARS-CoV-2 infection. J Transl Med 19, 524 (2021). https://doi.org/10.1186/s12967-021-03184-8
+From image
+https://media.springernature.com/lw685/springer-static/image/art%3A10.1186%2Fs12967-021-03184-8/MediaObjects/12967_2021_3184_Fig2b_HTML.png?as=webp
+
+
+Set 5: advancedprostate  advancedprostate.txt Genomic correlates of clinical outcome in advanced prostate cancer
+From https://www.pnas.org/content/116/23/11428
+Genomic correlates of clinical outcome in advanced prostate cancer
+Wassim Abida, Joanna Cyrta, Glenn Heller, Davide Prandi, Joshua Armenia, Ilsa Coleman, Marcin Cieslik, Matteo Benelli, Dan Robinson, Eliezer M. Van Allen, Andrea Sboner, Tarcisio Fedrizzi, Juan Miguel Mosquera, Brian D. Robinson, Navonil De Sarkar, Lakshmi P. Kunju, Scott Tomlins, Yi Mi Wu, Daniel Nava Rodrigues, Massimo Loda, Anuradha Gopalan, Victor E. Reuter, Colin C. Pritchard, Joaquin Mateo, Diletta Bianchini, Susana Miranda, Suzanne Carreira, Pasquale Rescigno, Julie Filipenko, Jacob Vinson, Robert B. Montgomery, Himisha Beltran, Elisabeth I. Heath, Howard I. Scher, Philip W. Kantoff, Mary-Ellen Taplin, Nikolaus Schultz, Johann S. deBono, Francesca Demichelis, Peter S. Nelson, Mark A. Rubin, Arul M. Chinnaiyan, and View ORCID ProfileCharles L. Sawyers
+
+See all authors and affiliations
+PNAS June 4, 2019 116 (23) 11428-11436; first published May 6, 2019; https://doi.org/10.1073/pnas.1902651116
+
+    Contributed by Charles L. Sawyers, March 27, 2019 (sent for review February 19, 2019; reviewed by Samuel Aparicio, John T. Isaacs, and Nandita Mitra)
+
+Hand copy genes from Table 1.
+
+
+
+Set 6: montazeri  montazeri.txt novel cancer genes vi deep shRNA perturbation screens.
+From https://academic.oup.com/nar/article/49/15/8488/6329117#supplementary-data
+Systematic identification of novel cancer genes through analysis of deep shRNA perturbation screens
+Hesam Montazeri, Mairene Coto-Llerena, Gaia Bianco, Ehsan Zangene, Stephanie Taha-Mehlitz, Viola Paradiso, Sumana Srivatsa, Antoine de Weck, Guglielmo Roma, Manuela Lanzafame ... Show more
+Author Notes
+Nucleic Acids Research, Volume 49, Issue 15, 7 September 2021, Pages 8488–8504, https://doi.org/10.1093/nar/gkab627
+Published:
+27 July 2021
+
+from gkab627_Supplemental_Files ( which is a tar archive file).  Extrant file : Supplementar table S2
+Hand copy genes
+
+
+Set 7: pancreatic  pancreatic.table4.txt Integrated epigenetic biomarkers in circulating cell-free DNA as a robust classifier for pancreatic cancer
+from 
+    Research Open Access Published: 23 July 2020
+
+Integrated epigenetic biomarkers in circulating cell-free DNA as a robust classifier for pancreatic cancer
+
+    Feng Cao, Ailin Wei, Xinlei Hu, Yijing He, Jun Zhang, Lin Xia, Kailing Tu, Jue Yuan, Ziheng Guo, Hongying Liu, Dan Xie & Ang Li 
+
+Clinical Epigenetics volume 12, Article number: 112 (2020) Cite this article
+Table 4, column H
+
+
+
+Set 8: newras newras.txt New alterations in lung cancer.
+from:
+nature genetics 2015
+https://unclineberger.org/peroulab/wp-content/uploads/sites/1008/2019/06/TCGA-Pan-Lung-NATGEN-2016.pdf
+Distinct patterns of somatic genome alterations in lung
+adenocarcinomas and squamous cell carcinomas
+Joshua D Campbell1,2, Anton Alexandrov3,4, Jaegil Kim1, Jeremiah Wala1,2, Alice H Berger1,2,
+Chandra Sekhar Pedamallu1,2, Sachet A Shukla1,2, Guangwu Guo1,2, Angela N Brooks1,2, Bradley A Murray1,2,
+Marcin Imielinski1,2,5, Xin Hu6, Shiyun Ling6, Rehan Akbani6, Mara Rosenberg1, Carrie Cibulskis1,
+Aruna Ramachandran1,2, Eric A Collisson7, David J Kwiatkowski1,8, Michael S Lawrence1, John N Weinstein6,
+Roel G W Verhaak6, Catherine J Wu1,2, Peter S Hammerman1,2, Andrew D Cherniack1,2, Gad Getz1,9,
+Cancer Genome Atlas Research 
+
+from Figure 7: "Figure 7 New alterations in the RTK–Rho/Ras– Raf pathway in lung ADC. Lung ADCs were
+classified as oncogene positive if they harbored a known activating or recurrent alteration in
+previously characterized pathway components and were classified as oncogene negative
+otherwise. (a) Fifteen genes (red points) were significantly enriched for mutations among
+oncogene-negative tumors (Fisher’s exact test, FDR q value < 0.1; supplementary table 23).
+A log-transformed odds ratio (LOR) greater than 0 indicates that the frequency of mutations
+was higher in the oncogene-negative set.  (b) Significant amplification peaks near FGFR1–
+WHSC1L1, PDGFRA–KIT–KDR, and MAPK1 were only found in the oncogene-negative tumor
+set using GISTIC 2.0 (q value < 0.25). (c) Co- mutation plot for known and new activators of
+the pathway. Tumors were considered to have high-level amplification for a given gene if they
+had a total log2-transformed copy number ratio greater than 1. For genes with gain-of-function
+SSNVs or indels, only recurrently mutated sites or sites with previous experimental functional
+evidence were included. New genes enriched for alterations among oncogene-negative tumors
+that are members of the RTK–Rho/Ras–Raf pathway are labeled in red in all panels. Dashed
+lines separate tumors that harbor a known or putative alteration in this pathway (n = 499),
+tumors that do not harbor an alteration in this pathway but have a mutation in STK11 (n =
+28), and tumors that do not harbor an alteration in this pathway or STK11 (n = 133). NA,
+RNA-seq data were not available.
+"
+
+
+Set 9: frontalcortex  frontalcortex.updated.txt Genes Over-expressed and Under-expressed in AD Frontal Cortex
+from :https://www.oatext.com/micro-rnas-mirnas-may-help-explain-expression-of-multiple-genes-in-alzheimers-frontal-cortex.php
+Table 2. Genes Over-expressed and Under-expressed in AD Frontal Cortex
+
+
+Set 10: myastheniaup  myastheniaup.updated.txt Blood Transcriptome Profiling in Myasthenia Gravis Patients
+
+from : https://pubmed.ncbi.nlm.nih.gov/26924932/
+Blood Transcriptome Profiling in Myasthenia Gravis Patients to Assess Disease Activity: A Pilot RNA-seq Study
+Kee Hong Park  1 , Junghee Jung  2 , Jung-Hee Lee  3 , Yoon-Ho Hong  4
+Affiliations
+    PMID: 26924932 PMCID: PMC4766113 DOI: 10.5607/en.2016.25.1.40 
+From table 2: LTF ... HIF1A-AS2 ( hand copy and update)
+
+
+Set 11: tet2model tet2model.updated.txt A 38-gene model comprised of key TET2-associated genes fpr prostate cancer prognostication.
+
+
+ 
+A 38-gene model comprised of key TET2-associated genes shows additive utility to high-risk prostate cancer cases in the prognostication of biochemical recurrence
+https://bmccancer.biomedcentral.com/articles/10.1186/s12885-020-07438-4#auth-Neil_E_-Fleshner
+Kamdar, S., Fleshner, N.E. & Bapat, B. A 38-gene model comprised of key TET2-associated genes shows additive utility to high-risk prostate cancer cases in the prognostication of biochemical recurrence. BMC Cancer 20, 953 (2020). https://doi.org/10.1186/s12885-020-07438-4
+Download citation
+    Received27 May 2020
+    Accepted18 September 2020
+    Published02 October 2020
+    DOIhttps://doi.org/10.1186/s12885-020-07438-4
+from : https://bmccancer.biomedcentral.com/articles/10.1186/s12885-020-07438-4#Sec15
+from : https://static-content.springer.com/esm/art%3A10.1186%2Fs12885-020-07438-4/MediaObjects/12885_2020_7438_MOESM6_ESM.xlsx
+
+
+
+Set 12: mettl14  mettl14.txt : METTL14 overexpress HEK293T cell line 
+from  webpage
+https://www.lcsciences.com/documents/sample_data/m6A_sequencing/m6A_seq_polyA_html_report.html#4.3%20Peak%20calling%20on%20whole%20genome
+Species: Human
+Specimens: METTL14 overexpress HEK293T cell line 
+from 4.4.1 Diff peak analysis
+
+
+Set 13: tigerbrain tigerbrain.txt Tissue-specific Gene Expression and Regulation (TiGER) for brain
+from  Tissue-specific Gene Expression and Regulation (TiGER) 
+
+Set 14: tigerspleen tigerspleen.txt Tissue-specific Gene Expression and Regulation (TiGER) for spleen 
+from  Tissue-specific Gene Expression and Regulation (TiGER) 
+
+Set 15: sp2targets sp2.1.b.targets.txt genes with SP2.1.B motif present just upstream
+genes with SP2.1.B motif present just upstream
+run meme suite on hg38, get gene downstream from location of motif in genome.
+
+Set 16: zbt48targets ZBT48.0.C.txt genes with ZBT48.0.C motif present just upstream
+genes with ZBT48.0.C motif present just upstream
+run meme suite on hg38, get gene downstream from location of motif in genome.
+
+Set 17: eomestargets EOMES.0.D.txt
+genes with EOMES.0.D motif present just upstream
+run meme suite on hg38, get gene downstream from location of motif in genome.
+
+
+Set 18: pankin tcga.kidney.muts.txt Significantly mutated genes in pan kidney cancer
+Significantly mutated genes in pan kidney cancer
+from https://gdac.broadinstitute.org/runs/analyses__2016_01_28/reports/cancer/KIPAN/MutSigNozzleReport2CV/nozzle.html
+
+Set 19: uvmclin tcga.uvm.clinfeat.txt Significantly muted genes in UVM from firehose tcga
+Significantly muted genes in UVM from firehose tcga
+from: https://gdac.broadinstitute.org/runs/analyses__2016_01_28/reports/cancer/UVM/Correlate_Clinical_vs_Mutation/nozzle.html
+Set 20: gbmexpvscn tcga.gbm.corr.exp.vs.cn.txt Correlations between copy number and mRNAseq expressionin GBM
+Correlations between copy number and mRNAseq expression
+Glioblastoma Multiforme (Primary solid tumor)
+from: https://gdac.broadinstitute.org/runs/analyses__2016_01_28/reports/cancer/GBM/Correlate_CopyNumber_vs_mRNAseq/nozzle.html
+
+Set 21: paclitaxel paclitaxel.updated.txt
+RNAseq analysis of treatment-resistant and sensitive breast cancer patient-derived organoids with paclitaxel treatments
+from : https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE183477&format=file&file=GSE183477%5FGene%5Fexpression%5Ftable%2Exlsx
+select signifcant genes from spreadsheet.
+
+Set 22: ccbr906 ccbr905.prod1.txt Random file 1 from production biowulf.
+random gene list file from biowulf
+
+Set 23: lackfusion lackfusion.prod2.updated.txt Random file 2 from production biowulf.
+random gene list file from biowulf.  Some fusion detection experiment.
+
+Set 24: ccbr872peaks ccbr872.peaks.prod3.txt Random file 3 from production biowulf.
+random gene list file from biowulf
+
+Set 25: sdrc1fam sdrc1fam.prod4.txt Random file 4 from production biowulf. This is genes in a gene family SDRC1
+random gene list file from biowulf . this is genes in a gene family called sdrc1
+
+Set 26: lgg3fusion lgg3fusion.prod5.txt Arriba fusions in LGG (lower grade glioma). Random file 5 from production biowulf.
+random gene list file from biowulf. This is commonly fused genes from arriba fusion finder program . data is 3rd part (of 1,2,3 parts) for TCGA LGG (lower grade glioma)
+
+Set 27: ccbr872 ccbr872.peaks.prod3.txt Random file 6 from production biowulf.
+random gene list file from biowulf
+
+Set 28: hemoglobin hemoglobin.gwas.txt GWAS for Mean corpuscular hemoglobin concentration.
+cut -f8,15 gwas_catalog_v1.0-associations_e105_r2021-12-21.tsv | grep "Mean corpuscular hemoglobin concentration" | cut -f2 | tr " " "\n" | tr -d "," | sort | uniq | ../PATHWAYS/updategenes | sort -k3,3n | cut -f1 > hemoglobin
+
+Set 29: alzheimergwas alzheimer.gwas.txt GWAS for alzheimer's.
+
+Set 30: breastcancergwas breastcancer.gwas.txt GWAS for breast cancer.
+
+Set 31: eyecolorgwas eyecolor.gwas.txt GWAS for eye color.
+
+Set 32: heightgwas height.gwas.txt GWAS for height.
+
+Set 33: pdaccomplexdn pdaccomplexdn.txt Down expresison in CTCF/LncRNA-PACERR/EP300 complex promotes the malignant progression of pancreatic ductal adenocarcinoma (PDAC) by docking at the PTGS2 promoter region
+from GSE169451_FPKM_of_differential_expression_genes_DEGs.txt.gz 
+https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE169451
+Public on Jun 30, 2021
+Title 	The CTCF/LncRNA-PACERR/EP300 complex in TAMs promotes the malignant progression of pancreatic ductal adenocarcinoma (PDAC) by docking at the PTGS2 promoter region
+cat     GSE169451_FPKM_of_differential_expression_genes_DEGs.txt | awk '{if ($8<0) print $0}' | cut -f1| ../PATHWAYS/updategenes | cut -f1 > pdaccomplesdn.txt
+hand edit for excel genes and other problems
+
+
+Set 34: pdaccomplexup pdaccomplexup.txt Up expresison in CTCF/LncRNA-PACERR/EP300 complex promotes the malignant progression of pancreatic ductal adenocarcinoma (PDAC) by docking at the PTGS2 promoter region.
+from GSE169451_FPKM_of_differential_expression_genes_DEGs.txt.gz 
+https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE169451
+Public on Jun 30, 2021
+Title 	The CTCF/LncRNA-PACERR/EP300 complex in TAMs promotes the malignant progression of pancreatic ductal adenocarcinoma (PDAC) by docking at the PTGS2 promoter region
+cat     GSE169451_FPKM_of_differential_expression_genes_DEGs.txt | awk '{if ($8>0) print $0}' | cut -f1| ../PATHWAYS/updategenes | cut -f1 > pdaccomplesup.txt
+hand edit for excel genes and other problems
+
+Set 35: random100 random100.txt Random genes.
+cat ../pathworks.txt | cut -f10- | tr " " "\n" | sort | uniq | shuf | tail -100 > random100.txt
+use file: random100.txt
+
+Set 36: crohns crohns.list.txt Single-cell analyses of Crohn’s reveals intestinal intraepithelial T cells heterogeneity.
+Natalia Jaeger, Ramya Gamini, Marina Cella, Jorge L. Schettini, Mattia Bugatti, Shanrong Zhao, Charles V. Rosadini, Ekaterina Esaulova, Blanda Di Luccia, Baylee Kinnett, William Vermi, Maxim N. Artyomov, Thomas A. Wynn, Ramnik J. Xavier, Scott A. Jelinsky, Marco Colonna
+Nat Commun. 2021; 12: 1921. Published online 2021 Mar 26. doi: 10.1038/s41467-021-22164-6
+
+
+Set 37: neckhn9rhn9s  neckhn9rhn9s.txt Gene expression profiling of two subclones of HN9-S and HN9-R isolated from patient-derived HN9 cancer cells
+from:https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE133201
+Title	Gene expression profiling of two subclones of HN9-S and HN9-R isolated from patient-derived HN9 cancer cells
+use  GSE133201_RNA-seq_Result_DiffExpGenes_CKC.xlsx
+sort on significant and cut out genes.
+
+Set 38: oncogenes oncogenes.updated.txt Oncogenes
+from https://cancerres.aacrjournals.org/content/canres/suppl/2012/01/23/0008-5472.CAN-11-2266.DC1/T3_74K.pdf
+Supplementary Table 3: A list of oncogenes and tumor suppressors used in the
+comparison of gene functional groups. Compiled from the CancerGenes website
+(http://cbio.mskcc.org/CancerGenes/Select.action). Where a gene was listed as both
+an oncogene and tumor suppressor, a literature search was performed to determine
+the role of the specific gene in tumor development. Any genes whose role as an
+oncogene or tumor suppressor was still questionable were excluded from the final list.
+
+Set 39: tumorsuppresors tumorsuppresors.updated.txt Tumor Suppresors.
+from https://cancerres.aacrjournals.org/content/canres/suppl/2012/01/23/0008-5472.CAN-11-2266.DC1/T3_74K.pdf
+Supplementary Table 3: A list of oncogenes and tumor suppressors used in the
+comparison of gene functional groups. Compiled from the CancerGenes website
+(http://cbio.mskcc.org/CancerGenes/Select.action). Where a gene was listed as both
+an oncogene and tumor suppressor, a literature search was performed to determine
+the role of the specific gene in tumor development. Any genes whose role as an
+oncogene or tumor suppressor was still questionable were excluded from the final list.
+use file: tumorsuppresors.updated.txt
+
+Set 40: cholangiocarcinoma cholangiocarcinoma.txt Gene mentioned in text of journal paper on Cholangiocarinoma.
+from : https://bmccancer.biomedcentral.com/articles/10.1186/s12885-019-5391-0
+genes mentioned in article , copy past article to text file.
+cat textofarticle | tr " " "\n" | sed 's/[(,),\,,;]//g'  | qkeep allhumangenes.txt  | sort | uniq | grep "[A-Z]" > cholagniocarcinoma.txt
+hand remove false positives .
+use file: cholangiocarcinoma.txt
+
+Set 41: upinmeso upinmeso.list.txt
+This dataset has a universe, file called mesoverse.list.txt
+
+
+Set 42: heritablecancer    heritablecancer.txt
+from https://aacrjournals.org/view-large/figure/13941137/2588fig3.jpeg
+hand copy from Section D image and update gene names 
+Genome and Epigenome| May 15 2021
+The Landscape of the Heritable Cancer Genome
+Viola Fanfani Luca Citi Adrian L. Harris Francesco Pezzella; Giovanni Stracquadanio

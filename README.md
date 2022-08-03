@@ -93,9 +93,9 @@ Here is a description of each parameter:
  - **C4**: MSigDB computational gene sets defined by mining large collections of cancer-oriented microarray data.
  - **C6**: MSigDB oncogenic gene sets defined directly from microarray data from cancer gene perturbations.
  - **C7**: MSigDB immunologic gene sets  from microarray data from immunologic studies.
- - **C8**: MsigDB markers identified in single-cell sequencing studies of human tissuetps://www.wikipathways.org
+ - **C8**: MsigDB markers identified in single-cell sequencing studies of human tissues.
 
-> _**Please Note:**_ MSigDB "ARCHIVED" pathways are not provided.  MSigDB category "C5" is not there. Use "GO" category (from NCBI biosystems), instead.
+> _**Please Note:**_ MSigDB "ARCHIVED" pathways are not provided.  MSigDB category "C5" is not there. Use "GO" category  instead.
 
 #### Example function call
 ```R 

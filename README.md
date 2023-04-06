@@ -3,7 +3,7 @@
 [![DOI](https://zenodo.org/badge/164483194.svg)](https://zenodo.org/badge/latestdoi/164483194)
 [![GitHub releases](https://img.shields.io/github/release/CCBR/l2p)](https://github.com/CCBR/l2p/releases) [![GitHub issues](https://img.shields.io/github/issues/CCBR/l2p)](https://github.com/CCBR/l2p/issues) [![GitHub license](https://img.shields.io/github/license/CCBR/l2p)](https://github.com/CCBR/l2p/blob/master/LICENSE)
 
-The beta web version is here: https://ccbr.github.io/l2p/ . ( You can copy/paste a whole paper in to see an instant pathway analysis. )
+The beta web version is here: https://ccbr.github.io/l2p/ . ( You can copy/paste a whole paper in to see an instant pathway analysis. ).  This is a single page webassembly web application.
 
 List-to-pathway, or `l2p`, is an R package for gene set enrichment analysis that is _optimized for speed!_ 
 
@@ -52,26 +52,26 @@ conda install r-l2psupp-0.0_13-r35_0.tar.bz2
 ## Usage
 ```
 # Available functions in l2p
-l2p(genelist)               # return data frame with proabilities that arg (list of genes) matches a pathway
+l2p(genelist)               # returns data frame with proabilities that arg (list of genes) matches a pathway
 l2pgetlongdesc(acc)         # get the full (possibly very long) description for pathway accession identifer string
 l2pgetgenes4acc(acc)        # get the list all the genes for a pathway, use the accession.
 
 # Convenience Functions:
-l2pu(list,universe)         # return data frame with probabilities with list of genes and user specified universe
-l2pwcats(list,categeories)  # return data frome with categories specified
+l2pu(list,universe)         # returns data frame with probabilities with list of genes and user specified universe
+l2pwcats(list,categeories)  # returns data frome with categories specified
 l2puwcats(list,universe,categories) # same as l2pwcats but also with a universe
-l2pver                              # return l2p version
+l2pver()                              # returns l2p version
 
 
 # Available functions in l2psupp 
-m2h(mousegenelist)          # return list of human genes for input list of mouse gene names
-a2a(genelist,fromspecies,tospecies) # return list of source species genes and return list of orthologs for destination species
+m2h(mousegenelist)          # returns list of human genes for input list of mouse gene names
+a2a(genelist,fromspecies,tospecies) # returns list of source species genes and return list of orthologs for destination species
 updategenes(genelist , [trust=1] , [ legitonly=0 ] )   # update old gene names to current HGNC (HUGO) gene names.
 egid2hugos(entrez_gene_list) # get HGNC names for entrez gene ids
  
 ```
 
-The `l2p` function supopors R style arguments    :
+The `l2p` function supoports R style arguments    :
 Here is a description of each parameter: 
  - universe: list of gene names
  - categories: see categories below
@@ -121,7 +121,6 @@ The output is a data frame with the following fields ...
 12 pathway_type                 functional_set,pathway,structural_complex,custom
 13 genesinpathway               HUGO genes from user that hit the pathway
 
-#### More Examples    
 ```R
 # Example usage for l2p
     

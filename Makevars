@@ -1,6 +1,0 @@
-CFLAGS +=    -DL2P_USING_R  -g -Wall -Wextra 
-CXXFLAGS +=  -DL2P_USING_R  -g -Wall -Wextra 
-CPPFLAGS +=  -DL2P_USING_R  -g -Wall -Wextra 
-PKG_CFLAGS +=    -DL2P_USING_R  -Wall -Wextra 
-PKG_CXXFLAGS +=  -DL2P_USING_R  -Wall -Wextra 
-PKG_CPPFLAGS +=  -DL2P_USING_R  -Wall -Wextra 

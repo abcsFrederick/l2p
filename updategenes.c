@@ -1,6 +1,6 @@
 
 /*
-vi updategenes.c ; gcc -minline-all-stringops -Wall -o updategenes updategenessupport.c updategenes.c
+vi updategenes.c ; gcc -minline-all-stringops -Wall -Wextra -Werror -O2 -o updategenes updategenessupport.c updategenes.c
 */
 
 #include <stdlib.h>
@@ -26,7 +26,7 @@ extern int numhugo;
 extern int numehe;
 extern struct entrez_hugo_ensemble_type ehe[];
 
-int cmp_sort_by_syn_name(const void *a, const void *b)
+static int cmp_sort_by_syn_name(const void *a, const void *b)
 {
    struct synonym_type *aa;
    struct synonym_type *bb;
@@ -35,7 +35,7 @@ int cmp_sort_by_syn_name(const void *a, const void *b)
    return(strcmp(aa->Synonym, bb->Synonym));
 }
 
-int myStrCmp(const void *s1, const void *s2) {
+static int myStrCmp(const void *s1, const void *s2) {
   const char *key = s1;
   const char * const *arg = s2;
   // printf("myStrCmp: s1(%p): %s, s2(%p): %s\n", s1, key, s2, *arg);
@@ -137,6 +137,7 @@ struct updated_genes_type *updategenesR(char *genes[], const int len)
 }
 
 
+   // don't make this function static
 struct entrez_hugo_ensemble_type *egids2hugos(unsigned int egids[], const int len) // free if return is not null
 {
     int i,j,k;
@@ -167,6 +168,7 @@ struct entrez_hugo_ensemble_type *egids2hugos(unsigned int egids[], const int le
 */
     return ret;
 }
+
 #else
 
 int geneupdate_command_line(const int mode)
@@ -295,4 +297,5 @@ int main(int argc,char *argv[])
 }
 
 #endif
+
 

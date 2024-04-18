@@ -343,7 +343,7 @@ int l2pfunc(struct used_path_type *usedpaths,unsigned int num_used_paths,unsigne
              unsigned int *real_universe, int calc_option, int *user_incnt_ptr, int oneside, unsigned int numpermutes);
 struct updated_genes_type *updategenesR(char *genes[], const int len);
 struct entrez_hugo_ensemble_type *egids2hugos(unsigned int egids[], const int len);
-struct used_path_type *setup_used_paths(unsigned int *num_used_paths, unsigned int catspat, char universe_file[], unsigned int in_universe_cnt,unsigned int *in_universe, char custom_file[], unsigned int *real_universe_cnt_ptr,unsigned int **real_universe,unsigned int lencust,struct custom_type *mycustompw);
+struct used_path_type *setup_used_paths(unsigned int *num_used_paths, unsigned int catspat, char universe_file[], unsigned int in_universe_cnt,unsigned int *in_universe, char custom_file[], unsigned int gmtfld2, unsigned int *real_universe_cnt_ptr,unsigned int **real_universe,unsigned int lencust,struct custom_type *mycustompw);
 void bh_adjusted(const double *p, double *pa, int size) ;
 double kt_fisher_exact(int n11, int n12, int n21, int n22, double *_left, double *_right, double *two);
 

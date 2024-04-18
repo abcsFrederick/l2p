@@ -314,13 +314,14 @@ UNUSED(permute_flag);
 }
 
 
-SEXP l2p(SEXP lst, SEXP categories, SEXP universe, SEXP custompws, SEXP customfn, SEXP universefn, SEXP permute_arg, SEXP oneside_arg, SEXP gpcc_arg, 
+SEXP l2p(SEXP lst, SEXP categories, SEXP universe, SEXP custompws, SEXP customfn, SEXP gmtfld2, SEXP universefn, SEXP permute_arg, SEXP oneside_arg, SEXP gpcc_arg, 
     SEXP legacy_arg, SEXP extra_arg)
 {
     char tmps2[PATH_MAX];  // temp string for "category" 
     char tmps[512];
     char universe_file[PATH_MAX];
-    char custom_file[PATH_MAX];
+    int gmtfld2_i = 0; // treat field 2 in gmt custom pathways file as an accession
+    char custom_file[PATH_MAX*5];
     unsigned int i,k,k2;
     unsigned int j;
     unsigned int len_of_user_pws = 0;  // length of list of lists , from Rf_length() which return R_len_t ( which in int? )
@@ -472,7 +473,7 @@ SEXP l2p(SEXP lst, SEXP categories, SEXP universe, SEXP custompws, SEXP customfn
         user_universe_flag = 0;
     else
         user_universe_flag = 1;
-    if (Rf_isNull(categories ))
+    if (Rf_isNull(categories))
     {
         category_set_all(&catspat);
 // fprintf(stderr,"no parsecats after category_set_all: %u (null categories) \n",catspat);
@@ -483,6 +484,7 @@ SEXP l2p(SEXP lst, SEXP categories, SEXP universe, SEXP custompws, SEXP customfn
         {
              tmps[0] = (char)0;
              len = length(categories);
+// fprintf(stderr,"rpf length(categories) = %d\n",len); fflush(NULL); 
              for (k2 = 0; k2 < len; k2++)
              {
                  if (k2) strcat(tmps,",");
@@ -494,14 +496,20 @@ SEXP l2p(SEXP lst, SEXP categories, SEXP universe, SEXP custompws, SEXP customfn
         }
         else 
         {
-fprintf(stderr,"NOTE: Not sure what's up. Can't parse categroies \n");  fflush(NULL);
+fprintf(stderr,"NOTE: Not sure what's up. Can't parse categories \n");  fflush(NULL);
         }
     }
 categories_pattern_to_strings(catspat,tmps);
 // fprintf(stderr,"GOTEST rpfdbg categories here 9, catspats=%x = \"%s\"\n",catspat,tmps);   fflush(NULL); 
 
-    if (Rf_isNull(customfn)) {} else strncpy(custom_file,CHAR(STRING_ELT(customfn, 0)),PATH_MAX-2);
+    if (Rf_isNull(customfn)) {} else strncpy(custom_file,CHAR(STRING_ELT(customfn, 0)),sizeof(custom_file)-2);
     if (Rf_isNull(universefn)) {} else strncpy(universe_file,CHAR(STRING_ELT(universefn, 0)),PATH_MAX-2);
+    if (Rf_isNull(gmtfld2)) {} 
+    else 
+    {
+        gmtfld2_i = asInteger(oneside_arg);
+// fprintf(stderr,"rpf after  gmtflds as integer. gmtfld2_i=%d\n",gmtfld2_i); fflush(NULL);
+    }
 
     for (j=i=0;i<k;i++)
     {                // de duplicate list 
@@ -563,7 +571,7 @@ categories_pattern_to_strings(catspat,tmps);
 
 // xxx fix
 // fprintf(stderr,"GOTEST before setup_used_paths\n");   fflush(NULL); 
-    u = setup_used_paths(&num_used_paths, catspat,universe_file,in_universe_cnt,user_in_univ_ptr,custom_file,&real_universe_cnt,&real_universe,len_of_user_pws,mycustompw);
+    u = setup_used_paths(&num_used_paths, catspat,universe_file,in_universe_cnt,user_in_univ_ptr,custom_file,gmtfld2_i,&real_universe_cnt,&real_universe,len_of_user_pws,mycustompw);
 // fprintf(stderr,"GOTEST after setup_used_paths\n");   fflush(NULL); 
 //fprintf(stderr,"in gpccdbg  after setup_used_path cats=%x after setup_used_paths() \n",catspat);  fflush(stderr);
 // NO, freed in setup_used_paths    if (user_in_univ_ptr) { free(user_in_univ_ptr); user_in_univ_ptr = (void *)0; }
@@ -1102,12 +1110,10 @@ SEXP l2pgetuniverseR(SEXP categories)
     {
         strncpy( tmps_cat,CHAR(STRING_ELT(categories, 0)),PATH_MAX-2);
         (void)parsecats(tmps_cat,&catspat);     // set catpats
-// fprintf(stderr,"in l2pgetuniverseR 2 cats=%x\n",catspat);  fflush(stderr);
+// fprintf(stderr,"debug: in l2pgetuniverseR 2 cats=%x\n",catspat);  fflush(stderr);
     }
 
-    u = setup_used_paths(&num_used_paths,catspat, junks,0,(unsigned int *)0,junks, &real_universe_cnt,&real_universe,0,(struct custom_type *)0);
-
-// fprintf(stderr,"in l2pgetuniverseR 3\n");  fflush(stderr);
+    u = setup_used_paths(&num_used_paths,catspat, junks,0,(unsigned int *)0,junks,(unsigned int)0, &real_universe_cnt,&real_universe,0,(struct custom_type *)0);
     PROTECT(Rret = allocVector(STRSXP, real_universe_cnt));
     protect_cnt++;
     for (i=0 ; i<real_universe_cnt ; i++)

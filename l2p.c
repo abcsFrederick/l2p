@@ -762,7 +762,7 @@ int permute_test(struct used_path_type used_paths[],unsigned int num_used_paths,
         {
             uptr->pval4 = 1.0;
             continue;
-               // don't bother 
+               // do not bother 
         }
         memset(p,0,sizeof(p));
         memcpy(r,real_universe,real_universe_cnt*sizeof(unsigned int));
@@ -890,7 +890,7 @@ int permute2(struct used_path_type used_paths[],unsigned int num_used_paths, uns
 //    char *z;
 
 
-fprintf(stderr,"rpf permute2 in permute2 incnt=%d num_use_paths=%u, num_permutes=%u\n",incnt,num_used_paths,num_permutes);  fflush(stderr);
+// fprintf(stderr,"rpf permute2 in permute2 incnt=%d num_use_paths=%u, num_permutes=%u\n",incnt,num_used_paths,num_permutes);  fflush(stderr);
     for (i=0 ; i<num_used_paths ; i++)
     {
         uptr = (used_paths+i);
@@ -917,7 +917,7 @@ fprintf(stderr,"rpf permute2 in permute2 incnt=%d num_use_paths=%u, num_permutes
     for (num_hyper_genes=i=0 ; i<num_used_paths ; i++)
         num_hyper_genes = num_hyper_genes + used_paths[i].numfixedgenes;    // get num_hyper_genes
 
-fprintf(stderr,"rpf permute2 num_hyper_genes=%d\n",num_hyper_genes);  fflush(stderr);
+// fprintf(stderr,"rpf permute2 num_hyper_genes=%d\n",num_hyper_genes);  fflush(stderr);
     hyper_verse = malloc(num_hyper_genes*(sizeof (unsigned int)));
     if (!hyper_verse) goto PERM2_END;
 
@@ -1796,7 +1796,7 @@ void malloc_pathpointers(struct tree_with_count *node) // counts aligned with un
 int path_pointers_to_tree(unsigned int this_gene, struct used_path_type *this_path, struct tree_with_count *head)
 // following put_to_tree, but tree is already there
 // I think right, have to find the unsorted genes here, this is guide for filling the pointer
-// could have been done while the tree was created, but don't have space for the pointers malloc'd yet
+// could have been done while the tree was created, but do not have space for the pointers malloc'd yet
 {
     // all nodes exist,
     // has to:
@@ -1937,7 +1937,7 @@ struct tree_with_count
           {
               z->deg = 1;
               node = z;
-              ++deg_count; // rpf: don't really need this, we know the deg_count.
+              ++deg_count; // rpf: do not really need this, we know the deg_count.
               for (i=0; i<node->count; i++)
               {
                   thispath = node->all_gene_paths[i];
@@ -2064,10 +2064,10 @@ int tablecalc(struct used_path_type usedpaths[], unsigned int num_used_paths, un
     
 // fprintf(stderr,"gpccdbg: in tablecalc() ingenecnt=%d num_used_paths=%d real_universe_cnt=%d \n",ingenecnt,num_used_paths,real_universe_cnt); fflush(stderr);
     
-    pvals = (double *)malloc((size_t)(sizeof (double)*(num_used_paths)));  // all in pathway struct, don't need
+    pvals = (double *)malloc((size_t)(sizeof (double)*(num_used_paths)));  // all in pathway struct, do not need
     if (!pvals) { fprintf(stderr,"ERROR: no memory\n"); fflush(stderr); return -1; }
     memset(pvals,0,sizeof (double)*(num_used_paths));
-    pvals2 = (double *)malloc((size_t)(sizeof (double)*(num_used_paths)));  // all in pathway struct, don't need
+    pvals2 = (double *)malloc((size_t)(sizeof (double)*(num_used_paths)));  // all in pathway struct, do not need
     if (!pvals2) { fprintf(stderr,"ERROR: no memory\n"); fflush(stderr); return -1; }
     memset(pvals2,0,sizeof (double)*(num_used_paths));
     for (i=0 ; i<num_used_paths;i++)
@@ -2198,7 +2198,7 @@ if (strcmp(uptr->acc,CHECKACC) == 0) { fprintf(stderr,"Got M40028 in GPCC, pathh
 // fprintf(stderr,"rpf here before benjaminihochberg(%d,%p,%p), num_used_paths=%d\n",num_used_paths,pvals,fdrs,num_used_paths); fflush(NULL);
     benjaminihochberg(num_used_paths,pvals,fdrs);
     benjaminihochberg(num_used_paths,pvals2,fdrs2);
-// fprintf(stderr,"rpf here after benjaminihochberg(%d,%p,%p), num_used_paths=%d\n",num_used_paths,pvals,fdrs,num_used_paths); fflush(NULL);
+// fprintf(stderr,"after benjaminihochberg(%d,%p,%p), num_used_paths=%d\n",num_used_paths,pvals,fdrs,num_used_paths); fflush(NULL);
     for (i=0 ; i<num_used_paths ; i++)
     {
          usedpaths[i].fdr = *(fdrs+i);
@@ -2226,7 +2226,7 @@ unsigned int GPCC(struct used_path_type usedpaths[], unsigned int num_used_paths
      The counts/200 are approximate p values for the pathways.
 */
     unsigned int i,I,j,k, ll;
-    int utilctr;
+//    int utilctr; George Nelson (GN) debug
     unsigned int this_gene;
     unsigned int ui = 0;
     unsigned int ui_ej = 0;
@@ -2368,13 +2368,13 @@ fprintf(stderr,"\n");
 // fprintf(stderr,"rpf in GPCC(), real_universe_cnt=%u 6\n",real_universe_cnt); fflush(NULL);
     malloc_pathpointers(head);
      // fprintf(stderr,"test after malloc_pathpointers\n"); fflush(NULL);
-    utilctr = 0;
+// GN debug    utilctr = 0;
     for (ui=0 ; ui<aug_gene_ct ; ui++)
     {
          this_gene = *(auguniverse+ui);
          this_path = *(augreverse+ui);
          path_pointers_to_tree(this_gene, this_path, head); // recall path_pointers are needed for permutation test
-         if(this_gene == 7040) ++utilctr;   // rpf - what is this ?  APPEARS TO BE GN DEBUG
+//         if(this_gene == 7040) ++utilctr;   // rpf - what is this ?  APPEARS TO BE GN DEBUG
     }
     *index_ptr = 0; // fcn passes down pointer
     *aug_ptr = 0; // fcn passes down pointer
@@ -2543,7 +2543,7 @@ fprintf(stderr,"doing TEST_PERMUTES\n");
         uptr = (usedpaths+I);
         // trying without 0.5 x countequal
         uptr->p_permute_over  = (uptr->countover  + uptr->countequal + 0.5)/(float) NUM_TEST_PERMUTES; // low p value if few random hits > real hits
-        uptr->p_permute_under = (uptr->countunder + uptr->countequal + 0.5)/(float) NUM_TEST_PERMUTES; // casts don't seem to be needed; shouldn't be for large ints
+        uptr->p_permute_under = (uptr->countunder + uptr->countequal + 0.5)/(float) NUM_TEST_PERMUTES; // casts do not seem to be needed; shouldn't be for large ints
     }
 // fprintf(stderr,"in GPCC 999\n"); fflush(NULL);
 
@@ -2573,7 +2573,7 @@ fprintf(stderr,"doing TEST_PERMUTES\n");
     if (augreverse)       free(augreverse);
     if (sig_path_ptr)     free(sig_path_ptr);
     if (deg_path_cts)     free (deg_path_cts);
-// fprintf(stderr,"rpf dbug end GPCC\n"); fflush(NULL);
+// fprintf(stderr,"debug end GPCC\n"); fflush(NULL);
 
     return(0);
 }
@@ -2597,7 +2597,7 @@ static unsigned int gpcc2(struct used_path_type usedpaths[], unsigned int num_us
 fprintf(stderr,"in gpcc2(), user_incnt=%u\n",user_incnt);  fflush(stderr); 
     pvals2 = (double *)malloc((size_t)(sizeof (double)*num_used_paths) );
     if (!pvals2) { fprintf(stderr,"ERROR: no memory in gpcc2()\n"); fflush(stderr); return 1; }
-    // memset(pvals2,0,sizeof(double)*num_used_paths); don't need to init 
+    // memset(pvals2,0,sizeof(double)*num_used_paths); do not need to init 
 
     local_aug_gene_ct = 0;
     for ( i=0 ; i<num_used_paths ; i++ )
@@ -2608,7 +2608,7 @@ fprintf(stderr,"in gpcc2(), user_incnt=%u\n",user_incnt);  fflush(stderr);
         uptr->pathcountsum = 0;
         local_aug_gene_ct = local_aug_gene_ct + uptr->numfixedgenes;
 // rpf xxx
-        if (uptr->hitcnt == 0) continue; // don't need to calculate if no hits
+        if (uptr->hitcnt == 0) continue; // do not need to calculate if no hits
 // fprintf(stderr,"in gpcc2() loop 1 %u to %u hit=%u\n",i,num_used_paths,uptr->hitcnt);  fflush(stderr); 
         for ( j=0 ; j<num_used_paths ; j++ )
         {         // get number of genes in all pathways, count duplicated gene names
@@ -2644,7 +2644,6 @@ fprintf(stderr,"in gpcc2(), user_incnt=%u\n",user_incnt);  fflush(stderr);
             }
         }
     }
-// fprintf(stderr,"in gpcc2() rpf here 2\n");  fflush(stderr); 
 
 fprintf(stderr,"in gpcc2() 2\n");  fflush(stderr); 
     for (i=0 ; i<num_used_paths ; i++)
@@ -2687,7 +2686,6 @@ fprintf(stderr,"in gpcc2() 2\n");  fflush(stderr);
         else uptr->gpcc_OR = 99999;
     }
     if (*pvals2) free (pvals2);
-fprintf(stderr,"in gpcc2() rpf here 4\n");  fflush(stderr); 
 fprintf(stderr,"in gpcc2() [end]\n");  fflush(stderr); 
     return 0;
 }
@@ -2801,7 +2799,7 @@ fprintf(stderr,"in gpcc3(), user_incnt=%u\n",user_incnt);  fflush(stderr);
     }
     pvals2 = (double *)malloc((size_t)(sizeof (double)*num_used_paths) );
     if (!pvals2) { fprintf(stderr,"ERROR: no memory in gpcc3()\n"); fflush(stderr); free(gcnts); return 1; }
-    // memset(pvals2,0,sizeof(double)*num_used_paths); don't need to init 
+    // memset(pvals2,0,sizeof(double)*num_used_paths); do not need to init 
 
 fprintf(stderr,"in gpcc3() 4\n");  fflush(stderr); 
     for (i=0 ; i<num_used_paths ; i++)
@@ -2897,7 +2895,7 @@ fprintf(stderr,"in gpcc4() 3\n");  fflush(stderr);
 
     pvals2 = (double *)malloc((size_t)(sizeof (double)*num_used_paths) );
     if (!pvals2) { fprintf(stderr,"ERROR: no memory in gpcc4()\n"); fflush(stderr); free(gcnts); return 1; }
-    // memset(pvals2,0,sizeof(double)*num_used_paths); don't need to init 
+    // memset(pvals2,0,sizeof(double)*num_used_paths); do not need to init 
 
 fprintf(stderr,"in gpcc4() 4\n");  fflush(stderr); 
     for (i=0 ; i<num_used_paths ; i++)
@@ -3174,7 +3172,7 @@ int l2pfunc(struct used_path_type *usedpaths,unsigned int num_used_paths,unsigne
 // struct timespec time1, time2;
     // char *z;
 
-fprintf(stderr,"rpf perm in l2pfunc() start, calc_option=%d num_permutes=%u\n",calc_option,num_permutes); fflush(stderr);  
+// fprintf(stderr,"rpf perm in l2pfunc() start, calc_option=%d num_permutes=%u\n",calc_option,num_permutes); fflush(stderr);  
 
     *user_incnt_ptr = j = 0;
     // ADDING INPUT FILE FOR C RUN, INPUT GENE LIST
@@ -3581,11 +3579,12 @@ void print_header(void)
 }
 
 int l2p_init_C(int argc,char *argv[],unsigned int *catspatptr,int *precise_flag, int *calc_option,int *no_header_flag, 
-       char universe_file[], char custom_file[], int *get_universe_flag, int *oneside, unsigned int *seed, unsigned int *num_permutes)
+       char universe_file[], char custom_file[], int *gmtfld2,  int *get_universe_flag, int *oneside, unsigned int *seed, unsigned int *num_permutes)
 {
     char *z;
     int i;
     int oneerr = 0;
+    int set_categories_pattern_flag  = 0; 
 
     *get_universe_flag = 0;
     *precise_flag = 0;
@@ -3594,7 +3593,8 @@ int l2p_init_C(int argc,char *argv[],unsigned int *catspatptr,int *precise_flag,
     *oneside = 0; // default is two-sided fe
     *seed = 0;
     universe_file[0] = (char)0;
-    custom_file[0] = (char)0;
+    custom_file[0] = (char)0; // can be multiple files
+    *gmtfld2 = 0;
     for (i=1 ; i<argc ; i++)
     {
         if ((strcmp(argv[i],"-help") == 0) || (strcmp(argv[i],"--help") == 0) || ((strcmp(argv[i],"help") == 0) ) )
@@ -3606,7 +3606,17 @@ int l2p_init_C(int argc,char *argv[],unsigned int *catspatptr,int *precise_flag,
         {
             z = argv[i],
             z += 12;
-            parsecats(z,catspatptr);
+            if (*z==(char)0) 
+            { 
+//                 fprintf(stderr,"categories being set to zero\n"); 
+                *catspatptr = 0;
+            }
+            else
+            {
+                parsecats(z,catspatptr);
+            }
+            set_categories_pattern_flag  = 1; 
+// fprintf(stderr,"categories=%s %x [in l2p_init_C].\n",z,*catspatptr); fflush(NULL);
         }
         else if (strcmp(argv[i],"-precise") == 0)
               *precise_flag = 1; // print more digits out so user doesn't complain about "real pvals"
@@ -3620,6 +3630,14 @@ int l2p_init_C(int argc,char *argv[],unsigned int *catspatptr,int *precise_flag,
               *calc_option = CALC_OPTION_GPCC2;
         else if (strcmp(argv[i],"-gpcc3") == 0)
               *calc_option = CALC_OPTION_GPCC3;
+        else if (strncmp(argv[i],"-gmtfld2=",9) == 0)
+        {
+            if (argv[i] + 9)
+            {
+                *gmtfld2 = atoi(argv[i] + 9);
+            }
+// fprintf(stderr,"inl2p_init_c , gmtfld2= %d\n",*gmtfld2); 
+        }
         else if (strcmp(argv[i],"-noheader") == 0)
               *no_header_flag = 1;
         else if (strcmp(argv[i],"-justheader") == 0)
@@ -3650,12 +3668,12 @@ int l2p_init_C(int argc,char *argv[],unsigned int *catspatptr,int *precise_flag,
         {
             strcpy(universe_file,argv[i] + 10);
             // user_universe_flag = 1;
-fprintf(stderr,"note: using \"%s\" as universe file\n",universe_file);
+// fprintf(stderr,"note: using \"%s\" as universe file\n",universe_file);
         }
         else if (strncmp(argv[i],"-seed=",6) == 0)
         {
             *seed = (unsigned int)atoi(argv[i]+6);
-fprintf(stderr,"seed is %u\n",*seed); 
+// fprintf(stderr,"seed is %u\n",*seed); 
         }
         else if (strcmp(argv[i],"-getuniverse") == 0)
         {
@@ -3664,21 +3682,22 @@ fprintf(stderr,"seed is %u\n",*seed);
         else if (strncmp(argv[i],"-numpermutes=",13) == 0)
         {
             *num_permutes = atoi(argv[i]+13);
-//             customflag++;
-fprintf(stderr,"note: num_permutes = %u\n",*num_permutes);
+// fprintf(stderr,"note: num_permutes = %u\n",*num_permutes);
         }
         else if (strncmp(argv[i],"-customfile=",12) == 0)
         {
             strcpy(custom_file,argv[i] + 12);
-//             customflag++;
-fprintf(stderr,"note: using \"%s\" as custom pathway gene listfile\n",custom_file);
+fprintf(stderr,"note: using \"%s\" as custom pathway gene listfile(s)\n",custom_file);
         }
         else 
         {
 fprintf(stderr,"Note: Invalid argument \"%s\" : ignored.\n",argv[i]);
         }
     }
-    if (*catspatptr == 0) category_set_all(catspatptr);
+    if (set_categories_pattern_flag ==0) 
+    {
+        category_set_all(catspatptr);
+    }
     return 0;
 }
 
@@ -3823,17 +3842,217 @@ int count_lines_in_file(char *fn)
     return lines;
 }
 
+int count_lines_in_files(char fns[])
+{
+    int lines = 0;
+    int ch = 0;
+    char t[PATH_MAX];
+    int i,j;
+    
+//fprintf(stderr,"in count_lines_in_fileS, inputline=\"%s\"\n",fns); 
+    i = j = 0;
+    t[0] = (char)0;
+    while (1)
+    {
+        ch = *(fns+i);
+        if ((ch == ',') || (ch == (char)0))
+        { 
+//fprintf(stderr,"in count_lines_in_fileS, file=\"%s\"\n",t); 
+            lines = lines + (count_lines_in_file(t));          
+            if (ch == 0) 
+                break;
+            j = 0;
+            t[0] = (char)0;
+        } 
+        else
+        {
+            if (j<(PATH_MAX-1))
+                t[j++] = ch;
+            t[j] = (char)0; 
+        }
+        i++;
+    }
 
-struct used_path_type *setup_used_paths(unsigned int *num_used_paths, unsigned int catspat, char universe_file[], unsigned int in_universe_cnt,unsigned int *in_universe, char custom_file[], unsigned int *real_universe_cnt_ptr,unsigned int **real_universe,unsigned int lencust,struct custom_type *mycustompw)
+    return lines;
+}
+
+// #define MAX_CUST_FILES 20
+//     char *files[MAX_CUST_FILES];
+
+void add_custom_file(char custom_file[] ,struct used_path_type *u, unsigned int *used_index, int gmtfld2, 
+    unsigned int *user_universe_genes, unsigned int universe_cnt)
 {
     char s[100000];
     char tmps[5120];
     char custname[5120];
-    unsigned int i,j,k,ll,used_index;
-    int tokcnt;
-    struct custom_type *kust = (struct custom_type *)0;
+    char custacc[5120];
+    unsigned int ui;
+    FILE *fp;
+    int k,j,tokcnt,newcnt,keepgoing;
+    struct used_path_type *uptr; // used path pointer
     char *z = (void *)0;
+    unsigned int *uiptr = (void *)0;
+    unsigned int *tmpugenes = (unsigned int *)0;
     int this_cust_pw_cnt = 0;
+    unsigned int prev;
+    unsigned int *this_egids = (unsigned int *)0;
+
+// fprintf(stderr,"rpf **** xxx in add_custom_file \"%s\"\n",custom_file); 
+
+#define MAXUGENES 40000
+    if (tmpugenes) { free(tmpugenes); tmpugenes = (unsigned int *)0; }
+    tmpugenes=malloc(sizeof(unsigned int)*MAXUGENES);
+    if (!tmpugenes) { fprintf(stderr,"can't malloc %u bytes \n",(unsigned int)(sizeof(unsigned int)*MAXUGENES));  fflush(stderr); }
+
+    fp = fopen(custom_file,"r");
+    if (!fp) { fprintf(stderr,"NOTE: can not open \"%s\" - ignoring\n",custom_file); fflush(stderr); }
+    else
+    {
+            while ( fgets(s, sizeof(s)-2, fp) ) // for each line of custom file
+            {
+                for (k=0 ; s[k] ; k++) { if ((s[k] == '\n')||(s[k] == '\r')) s[k] = (char)0; } // strip newline
+                uptr = (u+(*used_index)); // used_index points to next available slot 
+                z = &s[0];
+                tmps[0] = custname[0] = custacc[0] = (char)0;
+                j = tokcnt = k = newcnt = 0;
+                keepgoing = 1;
+                while (keepgoing == 1)
+                {
+                    if ( (*(z+j) == '\t') || (*(z+j) == (char)0) )
+                    {   // GMT spec says: first token is name, 2nd is optional and rest are gene names separated by tabs
+   // we added the gmtfld2 argment, it is a string.  if gmtfld2[0] == 1, then  use 2nd field as accession
+                       if (tokcnt == 0)
+                       { 
+                           strcpy(custname,tmps); 
+                           // accession is the name be default, do not assume anyting unless gmtfld2 overrides it
+                           strcpy(custacc,tmps); // default
+                       } 
+                       else if (tokcnt == 1) 
+                       { 
+// fprintf(stderr,"rpf tokcnt=1, gmtfld2=%d, tmps=\"%s\"\n",gmtfld2,tmps); fflush(NULL);  
+                            if (gmtfld2 == 1) 
+                            {
+                                strcpy(custacc,tmps); 
+// fprintf(stderr,"rpf setting custacc to %s\n",custacc);  fflush(NULL); 
+                            }
+                            else
+                            {
+                            /* ignore */ 
+                            }
+                       } 
+                       else
+                       {
+                           if (tmps[0])
+                           {
+                               ui = hugo2egid(tmps);
+                               if (ui == (unsigned int)UINT_MAX)
+                               {
+                                   fprintf(stderr,"Note: invalid gene \"%s\" in custom pathway file.\n",tmps);  
+                               }
+                               else
+                               {
+                                   if (universe_cnt) // must be in user universe
+                                   {
+                                       uiptr = (unsigned int *)bsearch(&ui,user_universe_genes,universe_cnt,sizeof(unsigned int),cmp_ui);
+                                       if (uiptr)
+                                       {
+                                           *(tmpugenes+newcnt) = ui; // put this in the right place
+                                           newcnt++;
+                                           if (newcnt == MAXUGENES) { fprintf(stderr,"ERROR: too many genes on custom pathway gmt file.\n"); fflush(stderr); }
+                                       }
+                                   }
+                                   else 
+                                   {
+                                       *(tmpugenes+newcnt) = ui; // put this in the right place
+                                       newcnt++;
+                                   }
+                               }
+                           }
+                       }
+                       tokcnt++;
+                       k = 0;
+                       tmps[0] = (char)0;
+                       if (*(z+j) == (char)0) keepgoing = 0;
+                    }
+                    else
+                    {
+                        tmps[k++] = *(z+j); 
+                        tmps[k] = (char)0;
+                    }
+                    j++;
+                }
+                if (newcnt == 0) continue;
+                qsort(tmpugenes,newcnt,sizeof(unsigned int),cmp_ui);
+                this_cust_pw_cnt = 0;
+                prev = 0;
+                this_egids = (unsigned int *)malloc(sizeof(unsigned int)*newcnt);
+                for (k=0;k<newcnt;k++) // de-duplicate, put only UNIQUE genes in
+                {
+                    ui = *(tmpugenes+k); 
+                    if (ui != prev)
+                    {
+                        *(this_egids+this_cust_pw_cnt) = ui;
+                        this_cust_pw_cnt++;
+                    }
+                    prev = ui;
+                }
+                uptr->acc = strdup(custacc);  // remember to free this
+// fprintf(stderr,"set custacc to %s\n",uptr->acc); 
+                uptr->name = strdup(custname); // remember to free this
+                uptr->egids = this_egids;      // remember to free this
+                uptr->numgenes = uptr->numfixedgenes = this_cust_pw_cnt;
+                uptr->pwgenesindex = USHRT_MAX;
+                uptr->genehits = (unsigned int *)malloc(sizeof(unsigned int)*this_cust_pw_cnt); // remember to free this
+                uptr->hitcnt = 0;
+                uptr->category = CAT_CUSTOM | (string2type("custom") << 28); // "type" and "category" are CUSTOM 
+                *(used_index) = *(used_index) + 1;
+            }
+        }
+	if (fp ) { fclose(fp); fp = (FILE *)0; }
+        if (tmpugenes) { free(tmpugenes); tmpugenes = (unsigned int *)0; }
+}
+
+
+
+void add_custom_files(char custom_file[], struct used_path_type *u, unsigned int *used_index,int gmtfld2, 
+    unsigned int *user_universe_genes, unsigned int universe_cnt)
+{
+    char t[PATH_MAX];
+    int i,j;
+    int ch = 0;
+    
+// fprintf(stderr,"in add_custom_files , custom_file=\"%s\"\n",custom_file); 
+    i = j = 0;
+    t[0] = (char)0;
+    while (1)
+    { // parse list of files..
+        ch = *(custom_file+i);   // custom_files can be a list of files
+        if ((ch == ',') || (ch == (char)0))
+        { 
+// fprintf(stderr,"in add_custom_files, file= %s\n",t); 
+            add_custom_file(t,u,used_index,gmtfld2, user_universe_genes,universe_cnt);
+            if (ch == 0) 
+                break;
+            j = 0;
+            t[0] = (char)0;
+        } 
+        else
+        {
+             if (j< (PATH_MAX-1))
+                 t[j++] = (char)ch;
+             t[j] = (char)0;
+        }
+        i++;
+    }
+// fprintf(stderr,"end add_custom_files %s\n",custom_file); 
+    return;
+}
+
+
+struct used_path_type *setup_used_paths(unsigned int *num_used_paths, unsigned int catspat, char universe_file[], unsigned int in_universe_cnt,unsigned int *in_universe, char custom_file[], unsigned int gmtfld2, unsigned int *real_universe_cnt_ptr,unsigned int **real_universe,unsigned int lencust,struct custom_type *mycustompw)
+{
+    unsigned int i,j,ll,used_index;
+    struct custom_type *kust = (struct custom_type *)0;
     unsigned int ui = 0;
     unsigned int *uiptr = (void *)0;
     unsigned short int usi = (unsigned short int)0;
@@ -3843,25 +4062,29 @@ struct used_path_type *setup_used_paths(unsigned int *num_used_paths, unsigned i
     unsigned int universe_cnt = 0;
     unsigned int *user_universe_genes = (unsigned int *)0;
     unsigned int *this_egids = (unsigned int *)0;
-    unsigned int *tmpugenes = (unsigned int *)0;
-    unsigned int prev = 0;
     unsigned int newcnt = 0;
-    int keepgoing;
-    FILE *fp;
+    // char s[100000];
+    // unsigned int *tmpugenes = (unsigned int *)0;
+    // unsigned int prev = 0;
+    // int tokcnt;
+    // char tmps[5120];
+    // char *z = (void *)0;
+    // int this_cust_pw_cnt = 0;
+    // int keepgoing;
 // char **custom_data = (void *)0;
 // struct timespec time1, time2;
-// fprintf(stderr,"rpf debug mycustompw=%p lencust=%d\n",mycustompw,lencust); fflush(stderr);  
-// fprintf(stderr,"in setup_used_paths() start catspat=%d = 0x%x\n",catspat,catspat); fflush(stderr); 
         // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
     *real_universe = (unsigned int *)0;
 
-//fprintf(stderr,"in setup_used_paths\n"); fflush(stderr);
+// fprintf(stderr,"in setup_used_paths\n"); fflush(stderr);
+// fprintf(stderr,"in setup_used_paths, catspat=%x\n",catspat); fflush(stderr);
 
               // just need to know how many lines in gmt file
     if (custom_file[0]) 
     {
-        custom_cnt = count_lines_in_file(custom_file);
-// fprintf(stderr,"rpf debug custom_cnt=%d from %s\n",custom_cnt,custom_file); fflush(stderr);  
+// fprintf(stderr,"rpf debug before count_lines_file_files\n"); fflush(stderr);  
+         custom_cnt = count_lines_in_files(custom_file); // custom_file may be multiple files separated by commas
+// fprintf(stderr,"rpf debug custom_cnt=%d from \"%s\", [in setup_used_paths()]\n",custom_cnt,custom_file); fflush(stderr);  
     }
     else
     {
@@ -3987,100 +4210,12 @@ unsigned int prev;
     }
 // fprintf(stderr,"rpf used_index = %d\n",used_index); fflush(stderr); 
 
-#define MAXUGENES 40000
     if (custom_cnt)
     {
-        if (tmpugenes) { free(tmpugenes); tmpugenes = (unsigned int *)0; }
-        tmpugenes=malloc(sizeof(unsigned int)*MAXUGENES);
-        if (!tmpugenes) { fprintf(stderr,"can't malloc %u bytes \n",(unsigned int)(sizeof(unsigned int)*MAXUGENES));  fflush(stderr); }
-        fp = fopen(custom_file,"r");
-        if (!fp) { fprintf(stderr,"NOTE: can not open \"%s\" - ignoring\n",custom_file); fflush(stderr); }
-        else
-        {
-            while ( fgets(s, sizeof(s)-2, fp) ) // for each line of custom file
-            {
-                for (k=0 ; s[k] ; k++) { if ((s[k] == '\n')||(s[k] == '\r')) s[k] = (char)0; } // strip newline
-                uptr = (u+used_index); // used_index points to next available slot 
-                z = &s[0];
-                tmps[0] = custname[0] = (char)0;
-                j = tokcnt = k = newcnt = 0;
-                keepgoing = 1;
-                while (keepgoing == 1)
-                {
-                    if ( (*(z+j) == '\t') || (*(z+j) == (char)0) )
-                    {   // first token is name, 2nd is optional and rest are gene names separated by tabs
-                       if (tokcnt == 0) strcpy(custname,tmps); 
-                       else if (tokcnt == 1) { /* ignore */ } 
-                       else
-                       {
-                           if (tmps[0])
-                           {
-                               ui = hugo2egid(tmps);
-                               if (ui == (unsigned int)UINT_MAX)
-                               {
-                                   fprintf(stderr,"Note: invalid gene \"%s\" in custom pathway file.\n",tmps);  
-                               }
-                               else
-                               {
-                                   if (universe_cnt) // must be in user universe
-                                   {
-                                       uiptr = (unsigned int *)bsearch(&ui,user_universe_genes,universe_cnt,sizeof(unsigned int),cmp_ui);
-                                       if (uiptr)
-                                       {
-                                           *(tmpugenes+newcnt) = ui; // put this in the right place
-                                           newcnt++;
-                                           if (newcnt == MAXUGENES) { fprintf(stderr,"ERROR: too many genes on custom pathway gmt file.\n"); fflush(stderr); }
-                                       }
-                                   }
-                                   else 
-                                   {
-                                       *(tmpugenes+newcnt) = ui; // put this in the right place
-                                       newcnt++;
-                                   }
-                               }
-                           }
-                       }
-                       tokcnt++;
-                       k = 0;
-                       tmps[0] = (char)0;
-                       if (*(z+j) == (char)0) keepgoing = 0;
-                    }
-                    else
-                    {
-                        tmps[k++] = *(z+j); 
-                        tmps[k] = (char)0;
-                    }
-                    j++;
-                }
-                if (newcnt == 0) continue;
-                qsort(tmpugenes,newcnt,sizeof(unsigned int),cmp_ui);
-                this_cust_pw_cnt = 0;
-                prev = 0;
-                this_egids = (unsigned int *)malloc(sizeof(unsigned int)*newcnt);
-                for (k=0;k<newcnt;k++) // de-duplicate, put only UNIQUE genes in
-                {
-                    ui = *(tmpugenes+k); 
-                    if (ui != prev)
-                    {
-                        *(this_egids+this_cust_pw_cnt) = ui;
-                        this_cust_pw_cnt++;
-                    }
-                    prev = ui;
-                }
-                uptr->acc = strdup(custname);  // remember to free this
-                uptr->name = strdup(custname); // remember to free this
-                uptr->egids = this_egids;      // remember to free this
-                uptr->numgenes = uptr->numfixedgenes = this_cust_pw_cnt;
-                uptr->pwgenesindex = USHRT_MAX;
-                uptr->genehits = (unsigned int *)malloc(sizeof(unsigned int)*this_cust_pw_cnt); // remember to free this
-                uptr->hitcnt = 0;
-                uptr->category = CAT_CUSTOM | (string2type("custom") << 28); // "type" and "category" are CUSTOM 
-                used_index++;
-            }
-        }
-	if (fp ) { fclose(fp); fp = (FILE *)0; }
-        if (tmpugenes) { free(tmpugenes); tmpugenes = (unsigned int *)0; }
-    } // if custom cnt
+        add_custom_files(custom_file,u,&used_index,gmtfld2,user_universe_genes,universe_cnt);
+// xxx
+    }
+ // if custom cnt
 
     for (i=0;i<lencust;i++) // add R user custom lists passed as a list of vectors (with "gmt" lines)
     {
@@ -4165,6 +4300,7 @@ int main(int argc,char *argv[])
     char universe_file[PATH_MAX];
     char custom_file[PATH_MAX];
     char tmps[PATH_MAX];
+    int gmtfld2;
     int user_incnt = 0;
     int no_header_flag = 0;
     int precise_flag = 0;
@@ -4198,18 +4334,21 @@ int main(int argc,char *argv[])
     srand(time(NULL) + getpid());
     srandom( time( NULL ) );
     (void)setup_by_egids();
-    l2p_init_C(argc,argv,&catspat,&precise_flag,&calc_option,&no_header_flag,universe_file,custom_file,&get_universe_flag,&oneside,&seed,&num_permutes);
-fprintf(stderr,"rpf calc_option=%d num_permutes=%u\n",calc_option,num_permutes); fflush(NULL);
+
+              // parse input parameters
+    l2p_init_C(argc,argv,&catspat,&precise_flag,&calc_option,&no_header_flag,universe_file,custom_file,&gmtfld2,&get_universe_flag,&oneside,&seed,&num_permutes);
+
+// fprintf(stderr,"rpf before setup_used_paths(), catspat=%x, custom_file=%s\n",catspat,custom_file); fflush(NULL);
 
     // prototype: struct used_path_type *setup_used_paths(unsigned int *num_used_paths, unsigned int catspat, char universe_file[], unsigned int in_universe_cnt,unsigned int *in_universe, char custom_file[], unsigned int *real_universe_cnt_ptr,unsigned int **real_universe,unsigned int lencust,struct custom_type *mycustompw);
-    u = setup_used_paths(&num_used_paths, catspat,universe_file, 0,(void *)0,custom_file,&real_universe_cnt,&real_universe,0,(struct custom_type *)0);
+    u = setup_used_paths(&num_used_paths, catspat,universe_file, 0,(void *)0,custom_file,gmtfld2,&real_universe_cnt,&real_universe,0,(struct custom_type *)0);
     if (get_universe_flag == 1)
     {
         print_universe(real_universe_cnt,real_universe);
         return 0;
     }
 
-fprintf(stderr,"in main(), before  l2pfunc num_permutes=%u\n",num_permutes); fflush(NULL);
+// fprintf(stderr,"in main(), before  l2pfunc num_permutes=%u\n",num_permutes); fflush(NULL);
     status = l2pfunc(u,num_used_paths,real_universe_cnt,real_universe,calc_option,&user_incnt,oneside,num_permutes);
 // fprintf(stderr,"in main(), after  l2pfunc\n"); fflush(NULL);
 

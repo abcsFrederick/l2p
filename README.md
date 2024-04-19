@@ -99,6 +99,10 @@ Here is a description of each parameter:
 
 #### Example function call
 ```R 
+library(l2p)
+genes<-c( "CNOT1","IFITM1","CYP27A1","MTSS1","MXD1","TMEM150B")
+x = l2p(as.vector(genes))
+head(x,4)
 
 ```
 

@@ -16,34 +16,34 @@ l2psupp is the "l2p supplemental" package which contains routines for converting
 
 The latest package of `l2p` can be downloaded directly from Github. Here we describe each method in more detail.
 
-**Option 1:** Download and install latest R package, `l2p_0.0-13.tar.gz`, from command-line:
+**Option 1:** Download and install latest R package, `l2p_0.0-14.tar.gz`, from command-line:
 ```bash
 # Get l2p from Github
-wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-13.tar.gz
+wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-14.tar.gz
 # Install as a site package 
-R CMD INSTALL l2p_0.0-13.tar.gz
+R CMD INSTALL l2p_0.0-14.tar.gz
 # install l2psupp ( "l2p supplemental")
-wget https://github.com/CCBR/l2p/raw/master/l2psupp_0.0-13.tar.gz
+wget https://github.com/CCBR/l2p/raw/master/l2psupp_0.0-14.tar.gz
 # Install as a site package 
-R CMD INSTALL l2psupp_0.0-13.tar.gz
+R CMD INSTALL l2psupp_0.0-14.tar.gz
 ```
  
 **Option 2:** Install `l2p` within an R console or RStudio session:
 ```R
 # Install from R console or 
-install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-13.tar.gz", repos=NULL) 
-install.packages("https://github.com/CCBR/l2p/raw/master/l2psupp_0.0-13.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2p_0.0-14.tar.gz", repos=NULL) 
+install.packages("https://github.com/CCBR/l2p/raw/master/l2psupp_0.0-14.tar.gz", repos=NULL) 
 
 ```
 
 **Option 3:** Download and install `l2p` using conda:
 ```bash
 # Download Package
-wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_13-r35_0.tar.bz2?raw=true -O r-l2p-0.0_13-r35_0.tar.bz2
+wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_14-r35_0.tar.bz2?raw=true -O r-l2p-0.0_14-r35_0.tar.bz2
 # Install in a conda enviroment
-conda install r-l2p-0.0_13-r35_0.tar.bz2
-wget https://github.com/CCBR/l2p/blob/master/r-l2psupp-0.0_13-r35_0.tar.bz2?raw=true -O r-l2psupp-0.0_13-r35_0.tar.bz2
-conda install r-l2psupp-0.0_13-r35_0.tar.bz2
+conda install r-l2p-0.0_14-r35_0.tar.bz2
+wget https://github.com/CCBR/l2p/blob/master/r-l2psupp-0.0_14-r35_0.tar.bz2?raw=true -O r-l2psupp-0.0_14-r35_0.tar.bz2
+conda install r-l2psupp-0.0_14-r35_0.tar.bz2
 
 ```
 
@@ -146,7 +146,7 @@ library(l2p)
 options(width=10000)
 options(max.print=999999)
 
-fv<-c("ADH1A","CATSPERG","HLA-DQA2","HINT2P1","MIR3150A","OR5BS1P","LINC02338","C4orf48","PARD3B","CX3CR1","RPL21P121","ARHGAP1","GAPDHP36","CNBD1","C8orf48","HTR3D","LINC00396","HIGD1AP5","C16orf90","RNU1-134P","CKAP2P1","AP5M1","FFAR3","LAD1","RNU6-524P","TJP3","JRKL","CRADD","RN7SL333P","CYP4F26P","CD1A","B3GNT5","TACC1P1","LINC02763","LOC100505664","TEX15","RPSAP18","CHP2","TRAV8-3","PFDN5","RPL7P8","SERPINA9","DNTTIP1","MELTF","HESX1","LINC02277","SFSWAP","SLC7A11","NAA16","FAM171B","GMNN","ZBTB2","WNT6","LINC02799","MRPL4","MTND1P37","HMGN2P40","NMD3P1","MIR195","LINC02785","DYM","TADA3","CEACAMP5","FAM198B-AS1","FZD8","TTC39C-AS1","RN7SL470P","IQANK1","IGKV1OR9-1","RPL10AP3","BPI","RPL5P25","CARD16","LINC02415","UBE2Q2P10","MIR6761","RNU6-903P","LINC01559","ARL17A","MIR518F","BRAP","LINC01165","XPC","RNU6-505P","LRRIQ4","MIR192","CCL27","LAPTM4BP2","INVS","TMEM161B-AS1","FAM197Y6","HSPD1","UGT1A9","TOR3A","TAF15","MIR6726","TMEM87A","HMGB1","MEI4","NAGPA-AS1","MAPK6P5","HTRA2","HSPB1P1","DYRK1A","IFFO2","TACO1","PPP6C","OR5D14","RNU6-313P","LINC01940","BBS2","RN7SL435P","LINC02422","OR3B1P","ZZEF1","EARS2","LINC02558","LINC00265-2P","KCNH1","GSTP1P1","MIR8076","RNU6-370P","RNA5SP279","RN7SL752P","CXorf49B","ANKRD36P1","IDH3A","RNU6-644P","NUCB2","CHCHD4","FAM138C","MIR198","CDC23","BRCA1","LINC02681","TFB2M","PPIP5K2","MAP2K1","MTATP6P14","COX6B1P2","HDAC5","RAB11FIP2","VSIG4","RN7SL690P","DNAJC13","GOT2P1","GTF2H1","BIRC2","LOC100132202","GAGE4","MTRNR2L10","LINC02319","C8orf49","CCNG2","LINC01524","RN7SKP49","CLDN22","FXYD6","LINC00384","ZNF14","PCGF3","CCDC6","TM4SF20","PRPS1L1","PRORSD1P","SEPHS1P1","KCNA10","MGAT5","LINC02015","BSDC1","POTEM","PHAX","RNU4-65P","MTND1P16","GPRIN2","GALE","CALY","QTRT2","RNU2-18P","TNFRSF10A-AS1","NECTIN3","RNU7-84P","PCK2","BBS5","CEACAMP4","UBE2R2","ABCB9","INTS13","ZNF69","PLEKHM2","LDHA","PHKBP1","SLC9B2","HNRNPA3P9","ARGFXP1","IER5L","CAPRIN1","RNA5SP19","NOP9","COX6CP16")
+fv<-c("ADH1A","CATSPERG","HLA-DQA2", "HINT2P1","MIR3150A","OR5BS1P","LINC02338","C4orf48","PARD3B","CX3CR1","RPL21P121","ARHGAP1","GAPDHP36","CNBD1","C8orf48","HTR3D","LINC00396","HIGD1AP5","C16orf90","RNU1-134P","CKAP2P1","AP5M1","FFAR3","LAD1","RNU6-524P","TJP3","JRKL","CRADD","RN7SL333P","CYP4F26P","CD1A","B3GNT5","TACC1P1","LINC02763","LOC100505664","TEX15","RPSAP18","CHP2","TRAV8-3","PFDN5","RPL7P8","SERPINA9","DNTTIP1","MELTF","HESX1","LINC02277","SFSWAP","SLC7A11","NAA16","FAM171B","GMNN","ZBTB2","WNT6","LINC02799","MRPL4","MTND1P37","HMGN2P40","NMD3P1","MIR195","LINC02785","DYM","TADA3","CEACAMP5","FAM198B-AS1","FZD8", "RN7SL470P","IQANK1","IGKV1OR9-1","RPL10AP3","BPI","RPL5P25","CARD16","LINC02415","UBE2Q2P10","MIR6761","RNU6-903P","LINC01559","ARL17A","MIR518F","BRAP","LINC01165","XPC","RNU6-505P","LRRIQ4","MIR192","CCL27","LAPTM4BP2","INVS","TMEM161B-AS1","FAM197Y6","HSPD1","UGT1A9","TOR3A","TAF15","MIR6726","TMEM87A","HMGB1","MEI4","NAGPA-AS1","MAPK6P5","HTRA2","HSPB1P1","DYRK1A","IFFO2","TACO1","PPP6C","OR5D14","RNU6-313P","LINC01940","BBS2","RN7SL435P","LINC02422","OR3B1P","ZZEF1","EARS2","LINC02558","LINC00265-2P","KCNH1","GSTP1P1","MIR8076","RNU6-370P","RNA5SP279","RN7SL752P","CXorf49B","ANKRD36P1","IDH3A","RNU6-644P","NUCB2","CHCHD4","FAM138C","MIR198","CDC23","BRCA1","LINC02681","TFB2M","PPIP5K2","MAP2K1","MTATP6P14","COX6B1P2","HDAC5","RAB11FIP2","VSIG4","RN7SL690P","DNAJC13","GOT2P1","GTF2H1","BIRC2","LOC100132202","GAGE4","MTRNR2L10","LINC02319","C8orf49","CCNG2","LINC01524","RN7SKP49","CLDN22","FXYD6","LINC00384","ZNF14","PCGF3","CCDC6","TM4SF20","PRPS1L1","PRORSD1P","SEPHS1P1","KCNA10","MGAT5","LINC02015","BSDC1","POTEM","PHAX","RNU4-65P","MTND1P16","GPRIN2","GALE","CALY","QTRT2","RNU2-18P","TNFRSF10A-AS1","NECTIN3","RNU7-84P","PCK2","BBS5","CEACAMP4","UBE2R2","ABCB9","INTS13","ZNF69","PLEKHM2","LDHA","PHKBP1","SLC9B2","HNRNPA3P9","ARGFXP1","IER5L","CAPRIN1","RNA5SP19","NOP9","COX6CP16")
 
 genes<-c("ADH1A","CATSPERG","HLA-DQA2","HINT2P1","MIR3150A","OR5BS1P","LINC02338","C4orf48","PARD3B","CX3CR1","RPL21P121","ARHGAP1","GAPDHP36","CNBD1","C8orf48","HTR3D","LINC00396","HIGD1AP5")
 

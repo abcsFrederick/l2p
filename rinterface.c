@@ -425,15 +425,14 @@ SEXP l2p(SEXP lst, SEXP categories, SEXP universe, SEXP custompws, SEXP customfn
     }
 
     universe_file[0] = custom_file[0] = tmps[0] = tmps2[0] = (char)0;
-    if (Rf_isNull(custompws))      //  if (custompws == (SEXP)0)
+    if (Rf_isNull(custompws))
     {
-//        custom_flag = 0; not used
         len_of_user_pws = 0;
     }
     else
     {
 /* struct custom_type { char *name; char *optional; unsigned int numgenes; unsigned int *genes; }; */
-//        custom_flag = 1; not used
+ //xxx
         len_of_user_pws = (int)length(custompws);
         mycustompw = (struct custom_type *)malloc(sizeof(struct custom_type )*len_of_user_pws); // remember to free this
         memset(mycustompw,0,sizeof(struct custom_type )*len_of_user_pws);
@@ -450,7 +449,11 @@ SEXP l2p(SEXP lst, SEXP categories, SEXP universe, SEXP custompws, SEXP customfn
                 memset(tmps2,0,sizeof(tmps2));
                 strncpy(tmps2,CHAR(STRING_ELT(list, j)),PATH_MAX-2);
                 if (j == 0) mycustompwptr->name = strdup(tmps2);    // name. check: must free this!
-                else if (j == 1) mycustompwptr->optional = strdup(tmps2); //  gmt says second field meaning is unspecified. could this be a URL someday?
+                else if (j == 1) 
+                {
+//  gmt (gene matrix transposed ) spec says second field meaning is unspecified. could this be a URL someday?
+                    mycustompwptr->optional = strdup(tmps2); 
+                }
                 else 
                 {
                     ui = hugo2egid(tmps2);

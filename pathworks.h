@@ -284,7 +284,7 @@ struct used_path_type
 struct custom_type
 {
     char *name;
-    char *optional;
+    char *optional; // should in practice be the accession ?
     unsigned int numgenes;
     unsigned int *genes;
 };

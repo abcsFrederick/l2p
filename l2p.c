@@ -4222,7 +4222,7 @@ unsigned int prev;
         uptr = (u+used_index); // used_index points to next available slot 
         kust = (mycustompw + i);
         uptr->acc = strdup(kust->name);
-        uptr->name = strdup(kust->name);
+        uptr->name = strdup(kust->optional);
         this_egids = (unsigned int *)malloc(sizeof(unsigned int) * kust->numgenes);
         for (j=0 ; j<kust->numgenes ; j++)   // for each gene in a custom pathway
         {

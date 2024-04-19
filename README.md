@@ -9,7 +9,7 @@ List-to-pathway, or `l2p`, is an R package for gene set enrichment analysis that
 
 `l2p` can be used to determine whether a biological process or function is over-represented in a user-defined gene list. This can be a list of differential expressed genes, or a list of annotated differential bound regions using a tool like [uropa](https://www.nature.com/articles/s41598-017-02464-y) or [homer](http://homer.ucsd.edu/homer/ngs/annotation.html). 
 
-l2psupp is the "l2p supplemental" package which contains routines for converting gene symbols.  l2psupp and l2p are indepedent.  It is recommened to use the l2psupp's updategenes() function to make your old gene symbols 
+l2psupp is the "l2p supplemental" package which contains routines for converting gene symbols.  l2psupp and l2p are indepedent.  It is recommened to use the l2psupp's updategenes() function to make your old gene symbols into new HGNC gene symbols.
 
 
 ## Installation

@@ -38,12 +38,14 @@ install.packages("https://github.com/CCBR/l2p/raw/master/l2psupp_0.0-14.tar.gz",
 
 **Option 3:** Download and install `l2p` using conda:
 ```bash
-# Download Package
-wget https://github.com/CCBR/l2p/blob/master/r-l2p-0.0_14-r35_0.tar.bz2?raw=true -O r-l2p-0.0_14-r35_0.tar.bz2
-# Install in a conda enviroment
-conda install r-l2p-0.0_14-r35_0.tar.bz2
-wget https://github.com/CCBR/l2p/blob/master/r-l2psupp-0.0_14-r35_0.tar.bz2?raw=true -O r-l2psupp-0.0_14-r35_0.tar.bz2
-conda install r-l2psupp-0.0_14-r35_0.tar.bz2
+# Download 1) l2p and 2) l2psupp Packages
+wget https://github.com/CCBR/l2p/raw/master/r-l2p-0.0_14-r41h9bf148f_1.tar.bz2
+wget https://github.com/CCBR/l2p/raw/master/r-l2psupp-0.0_14-r41_0.tar.bz2
+
+
+ # Install in a conda enviroment run conda install  
+conda install r-l2p-0.0_14-r41h9bf148f_1.tar.bz2
+conda install r-l2psupp-0.0_14-r41_0.tar.bz
 
 ```
 

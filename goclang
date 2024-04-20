@@ -10,4 +10,7 @@
 
 #clang -ggdb -fsanitize=address -O1 -fsanitize-memory-track-origins -fno-omit-frame-pointer l2p.c pwgenes.c l2pstats.c utilfuncs.c mitlicstats.c  -o l2pclang -lm
 
-clang -O2 -Wall -Wextra l2p.c pwgenes.c l2pstats.c utilfuncs.c  -o l2pclang -lm
+#clang  -std=c11 -O2 -Wall -Wextra -Werror mitlicstats.c l2p.c pwgenes.c l2pstats.c utilfuncs.c  -o l2pclang -lm
+clang -O2 -Wall -Wextra -Werror mitlicstats.c l2p.c pwgenes.c l2pstats.c utilfuncs.c -o l2pclang -lm 
+
+

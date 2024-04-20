@@ -207,7 +207,7 @@ static unsigned int aug_deg_count = 0; // number of times the userinput appears 
 static unsigned int deg_count_sum;
 static unsigned int real_genect = 0;
 static unsigned int aug_gene_ct = 0;
-static unsigned int *auguniverse;
+static unsigned int *auguniverse = (unsigned int *)0;
 static double mean_deg_gpcount;
 static double mean_u_gpcount;
 unsigned int ingenes[MAX_INGENES];
@@ -593,7 +593,7 @@ int cmp_ordertype_by_val_REV(const void *a, const void *b)
     return 0;
 }
 
-static void benjaminihochberg(int n,double pvals[], double returnpvals[])
+static void benjaminihochberg(int n,const double pvals[], double * returnpvals) // returnpvals must be alloocated and passed to this with size n
 {
 /*
  here's the code from R that I re-imagined
@@ -610,13 +610,12 @@ static void benjaminihochberg(int n,double pvals[], double returnpvals[])
 //    struct ordertype *ro;
 //    struct ordertype *intermed;
 
-// fprintf(stderr,"rpf in benjaminihochberg\n"); fflush(stderr); 
-
     i = (struct ordertype *)malloc(sizeof(struct ordertype)*n);
     for (k=n,j=0;j<n;j++,k--) (i+j)->order=k;
 
 #define RDEBUG 0
 #if RDEBUG
+ // this makes sure our bh values match what R thinks it is 
 FILE *fp;
 fp = fopen("test.pvals","w");
 #endif
@@ -684,6 +683,7 @@ fprintf(fp2,"%20.18f\n",returnpvals[j]);
 #if RDEBUG
 fclose(fp2);
 #endif
+
     if (i) free(i);
     if (o) free(o);
     if (po) free(po);
@@ -691,7 +691,6 @@ fclose(fp2);
 
     return;
 }
-
 
 
 #if 1
@@ -1307,24 +1306,18 @@ d2 = real_universe_cnt - ( uptr->numfixedgenes ) - incnt + localhitcnt;
 // if (strcmp(uptr->acc,"ko00010") == 0) { fprintf(stderr,"adbg : do_pvals_and_bh ko00010 enrichment_score is %f from %d %d %d %d\n",enrichment_score,a2,b2,c2,d2); }
     }
 #if 0
-for (i=0 ; i<num_used_paths ; i++)
-{
- fprintf(stderr,"rpf checking 1 *(pvals+i) %d  %f\n",i,*(pvals+i) ); 
-}
+ for (i=0 ; i<num_used_paths ; i++)
+ {
+  fprintf(stderr,"rpf checking 1 *(pvals+i) %d  %f\n",i,*(pvals+i) ); 
+ }
 #endif
 
     fdrs = (double *)malloc((size_t)(sizeof (double)*num_used_paths)); 
     if (!fdrs) { free(pvals); /* clean up */ fprintf(stderr,"ERROR: no memory in do_pvals_and_bh() 2\n"); return -3; }
-
-#if 0
-for (i=0 ; i<num_used_paths ; i++)
-{
-fprintf(stderr,"rpf checking 2 *(pvals+i) %d  %f\n",i,*(pvals+i) ); 
-}
-#endif
-// fprintf(stderr,"rpf before benjaminihochberg\n"); fflush(stderr); 
-    benjaminihochberg(num_used_paths,pvals,fdrs);
-// fprintf(stderr,"rpf after benjaminihochberg\n"); fflush(stderr); 
+    if (pvals)
+    {
+        benjaminihochberg(num_used_paths,pvals,fdrs);
+    }
     for (i=0 ; i<num_used_paths ; i++)
     {
          usedpaths[i].fdr = *(fdrs+i);
@@ -2307,9 +2300,9 @@ fprintf(stderr,"\n");
     auguniverse = malloc(aug_gene_ct * sizeof(unsigned int));
     mean_u_gpcount = (float) aug_gene_ct/(float) real_universe_cnt;
 #endif
-    if (!auguniverse)
+    if (auguniverse == (unsigned int *)0)
     {
-        fprintf(stderr,"ERROR: not enough memory. in GPCC()\n"); fflush(stderr);
+        fprintf(stderr,"ERROR: not enough memory. in GPCC(), auginiverse malloc failed.\n"); fflush(stderr);
         return (unsigned int)0 ;
     }
 // fprintf(stderr,"rpf debug aug_gene_ct = %d mean_u_gpcount=%f\n",aug_gene_ct,mean_u_gpcount); fflush(stderr); 
@@ -2335,7 +2328,15 @@ fprintf(stderr,"\n");
     }
 // fprintf(stderr,"rpf in GPCC(), real_universe_cnt=%u 4\n",real_universe_cnt); fflush(NULL);
     head = malloc(sizeof(struct tree_with_count));
-    head->val = *(auguniverse); // entrez gene id
+    if (auguniverse)
+    {
+        head->val = *(auguniverse); // entrez gene id
+    }
+    else
+    {
+        fprintf(stderr,"ERROR: in GPCC() , auguniverse is null.\n");  fflush(stderr);
+        exit(0);
+    }
     real_genect = 1;
     head->count = 1; // each node starts with count 1
     head->deg = 0;
@@ -3130,10 +3131,13 @@ int bh4( struct used_path_type usedpaths[], unsigned int num_used_paths)
          *(pvals+i) = usedpaths[i].pval4; // nota bene
     fdrs = (double *)malloc((size_t)(sizeof (double)*num_used_paths)); 
     if (!fdrs) { free(pvals); /* clean up */ fprintf(stderr,"ERROR: no memory in bh4() 2\n"); return -3; }
-    benjaminihochberg(num_used_paths,pvals,fdrs);
-    for (i=0 ; i<num_used_paths ; i++)
+    if (pvals)
     {
-         usedpaths[i].fdr = *(fdrs+i);
+        benjaminihochberg(num_used_paths,pvals,fdrs);
+        for (i=0 ; i<num_used_paths ; i++)
+        {
+             usedpaths[i].fdr = *(fdrs+i);
+        }
     }
     free(pvals);
     free(fdrs);
@@ -3632,7 +3636,7 @@ int l2p_init_C(int argc,char *argv[],unsigned int *catspatptr,int *precise_flag,
               *calc_option = CALC_OPTION_GPCC3;
         else if (strncmp(argv[i],"-gmtfld2=",9) == 0)
         {
-            if (argv[i] + 9)
+            if (argv[i+ 9])
             {
                 *gmtfld2 = atoi(argv[i] + 9);
             }
@@ -3648,7 +3652,7 @@ int l2p_init_C(int argc,char *argv[],unsigned int *catspatptr,int *precise_flag,
         else if (strncmp(argv[i],"-oneside=",9) == 0)
         {
             oneerr = 0;
-            if (argv[i] + 9)
+            if (argv[i+9])
             {
                 *oneside = atoi(argv[i] + 9);
                 if ( (*oneside < 0) || (*oneside > 2) )
@@ -4757,4 +4761,3 @@ D – number of hits
 Odds_ratio              odds ratio
 Sum_of_pathways         Sum of unique pathways where pathway genes are also found
 */
-

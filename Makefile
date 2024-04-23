@@ -2,7 +2,8 @@
 CC=gcc
 RM=rm -f
 # fave ..
-CFLAGS=-Wextra -Wall -Werror -O2 -funroll-loops -march=native -flto -pipe -minline-all-stringops -Wmaybe-uninitialized
+#CFLAGS=-Wextra -Wall -Werror -O2 -funroll-loops -march=native -flto -pipe -minline-all-stringops -Wmaybe-uninitialized
+CFLAGS= -g -march=native -flto -pipe -minline-all-stringops 
 
 LDFLAGS=-flto -lm
 

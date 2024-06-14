@@ -232,19 +232,10 @@ struct smallgenetype
     unsigned int egid;              // entrez gene id
 };
 
-struct tree_with_count
-{
-    unsigned int val;   // entrez gene id : sometimes called "egid"
-    unsigned int count; // number of pathways this gene hits
-    unsigned int deg;   // 1 on deglist, 0 not on  ( deglist = "differentially expressed gene list" , aka user inlist)
-    struct tree_with_count *left;
-    struct tree_with_count *right;
-    struct used_path_type **all_gene_paths; // all gene paths is an array of pointers ( of "count" size).
-    unsigned int pathindex; // which array member gets the pointer to pathway?
-};
 struct used_path_type
 {
     unsigned int category;
+    char *custom_category_name;
     char *acc;
     char *name;
     unsigned int numgenes;   // original number of genes in pathway
@@ -279,6 +270,17 @@ struct used_path_type
 #endif
     double pval4;
     double fdr4;
+};
+
+struct tree_with_count
+{
+    unsigned int val;   // entrez gene id : sometimes called "egid"
+    unsigned int count; // number of pathways this gene hits
+    unsigned int deg;   // 1 on deglist, 0 not on  ( deglist = "differentially expressed gene list" , aka user inlist)
+    struct tree_with_count *left;
+    struct tree_with_count *right;
+    struct used_path_type **all_gene_paths; // all gene paths is an array of pointers ( of "count" size).
+    unsigned int pathindex; // which array member gets the pointer to pathway?
 };
 
 struct custom_type

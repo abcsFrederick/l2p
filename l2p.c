@@ -157,6 +157,10 @@ a/b / c/d
 #include <Rdefines.h>
 #endif
 
+#ifdef __MINGW32__
+#define random rand
+#define srandom srand
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -207,9 +211,9 @@ static unsigned int aug_deg_count = 0; // number of times the userinput appears 
 static unsigned int deg_count_sum;
 static unsigned int real_genect = 0;
 static unsigned int aug_gene_ct = 0;
-static unsigned int *auguniverse = (unsigned int *)0;
 static double mean_deg_gpcount;
 static double mean_u_gpcount;
+unsigned int *auguniverse = (unsigned int *)0;
 unsigned int ingenes[MAX_INGENES];
 // static unsigned int n_sig_paths = 0;   not used, for debugging
 // static struct used_path_type **augreverse = (struct used_path_type **)0;
@@ -593,7 +597,7 @@ int cmp_ordertype_by_val_REV(const void *a, const void *b)
     return 0;
 }
 
-static void benjaminihochberg(int n,const double pvals[], double * returnpvals) // returnpvals must be alloocated and passed to this with size n
+static void benjaminihochberg(int n,double pvals[], double * returnpvals) // returnpvals must be alloocated and passed to this with size n
 {
 /*
  here's the code from R that I re-imagined
@@ -1205,7 +1209,7 @@ int do_pvals_and_bh(unsigned int incnt, struct used_path_type usedpaths[], unsig
     double *pvals;
     double *fdrs;
     unsigned int localhitcnt ;
-    struct used_path_type *uptr;	// used path pointer 
+    struct used_path_type *uptr = (struct used_path_type *)0;	// used path pointer 
     int a2 , b2 , c2 , d2;
 
 
@@ -2205,6 +2209,15 @@ if (strcmp(uptr->acc,CHECKACC) == 0) { fprintf(stderr,"Got M40028 in GPCC, pathh
     return 0;
 }
 
+#if 1
+ // this hack7 thing is to make the compilter think auguniverse is used so it will not output the bobogus "might be used unitinialized" warning 
+void hack7(unsigned int *x)
+{
+if (x == (unsigned int *)0x1) fprintf(stderr,"ERROR: \"hack7\" %p\n",x);
+return;
+}
+#endif
+
 unsigned int GPCC(struct used_path_type usedpaths[], unsigned int num_used_paths, unsigned int real_universe_cnt, unsigned int *real_universe)
 {
 /*
@@ -2225,13 +2238,15 @@ unsigned int GPCC(struct used_path_type usedpaths[], unsigned int num_used_paths
     unsigned int ui_ej = 0;
     unsigned int *randgenesindex = (unsigned int *)0;
     unsigned int *pool = (unsigned int *)0;
-    struct tree_with_count *head = (struct tree_with_count *)0;
-    struct used_path_type **augreverse = (struct used_path_type **)0; // parallel to augmented universe ("auguniverse") , a "reverse lookup" mechanism
     struct used_path_type  *this_path = (struct used_path_type *)0;
     unsigned int *index_ptr = (unsigned int *)0;
     unsigned int *aug_ptr = (unsigned int *)0;
     struct used_path_type *uptr = (struct used_path_type *)0;    // used path pointer
     double *pspace = (double *)0;   // array of pvalues[num_used_paths*NUM_TEST_PERMUTES]
+    struct tree_with_count *head = (struct tree_with_count *)0;
+    struct used_path_type **augreverse = (struct used_path_type **)0; 
+             // ^^^ parallel to augmented universe ("auguniverse") , a "reverse lookup" mechanism
+
 #if NELSON_TEST
     FILE *deg_path_count_file = (FILE *)0;
 #endif
@@ -2247,6 +2262,7 @@ unsigned int GPCC(struct used_path_type usedpaths[], unsigned int num_used_paths
     double pv;
 #endif
 
+    auguniverse = (unsigned int *)0; // does not shut up warning
 
 // fprintf(stderr,"rpf in GPCC(), real_universe_cnt=%u\n",real_universe_cnt); fflush(NULL);
 #if 0
@@ -2328,9 +2344,12 @@ fprintf(stderr,"\n");
     }
 // fprintf(stderr,"rpf in GPCC(), real_universe_cnt=%u 4\n",real_universe_cnt); fflush(NULL);
     head = malloc(sizeof(struct tree_with_count));
-    if (auguniverse)
+    memset(head,0,sizeof(struct tree_with_count));
+
+    if (auguniverse != (void *)0)
     {
-        head->val = *(auguniverse); // entrez gene id
+hack7(auguniverse);
+        head->val = *auguniverse; // entrez gene id
     }
     else
     {
@@ -2608,7 +2627,7 @@ fprintf(stderr,"in gpcc2(), user_incnt=%u\n",user_incnt);  fflush(stderr);
         uptr->pathhits_gpsum = 0; // the number of pathways that all "HIT(!) genes" 
         uptr->pathcountsum = 0;
         local_aug_gene_ct = local_aug_gene_ct + uptr->numfixedgenes;
-// rpf xxx
+// rpf 
         if (uptr->hitcnt == 0) continue; // do not need to calculate if no hits
 // fprintf(stderr,"in gpcc2() loop 1 %u to %u hit=%u\n",i,num_used_paths,uptr->hitcnt);  fflush(stderr); 
         for ( j=0 ; j<num_used_paths ; j++ )
@@ -2844,7 +2863,7 @@ fflush(stderr);
 } 
 #if 0
 if (d>0)
-fprintf(stderr,"xxx %s : p=%f from scaled: %u %u %u %u scale=%f\n",uptr->acc,aug_pv,uptr->A_scaled , uptr->B_scaled, uptr->C_scaled, uptr->D_scaled ,aug_scale);
+fprintf(stderr,"%s : p=%f from scaled: %u %u %u %u scale=%f\n",uptr->acc,aug_pv,uptr->A_scaled , uptr->B_scaled, uptr->C_scaled, uptr->D_scaled ,aug_scale);
 #endif
         uptr->gpcc_p = aug_pv;     // heres the pvalue for GPCC ***
         uptr->pval = aug_pv;     // heres the pvalue for GPCC ***
@@ -3421,7 +3440,6 @@ fprintf(stderr,"rpf after benjaminihochberg\n"); fflush(stderr);
     else if (calc_option == CALC_OPTION_PERMUTE) // permute
     {
 fprintf(stderr,"in l2pfunc() permute2 rpf num_used_paths=%d, calc_option=2 (CALC_OPTION_PERMUTE) num_permutes=%d\n",num_used_paths,num_permutes); 
-// xxx
         if (num_permutes < 100) 
         {
 fprintf(stderr,"Warning: overridd num_permutes of %d.  Setting to default %d (PERMUTE_DEFAULT_LOW).\n",num_permutes,PERMUTE_DEFAULT_LOW); fflush(NULL);
@@ -3458,7 +3476,6 @@ fprintf(stderr,"in l2pfunc() permute3 rpf num_used_paths=%d, calc_option=2\n",nu
             }
             uptr->hitcnt = ll;
         }
-// xxx
 fprintf(stderr,"rpf permute3 in lp2func(), before permute3\n"); fflush(NULL);
         if (num_permutes < 100) 
         {
@@ -3883,6 +3900,30 @@ int count_lines_in_files(char fns[])
     return lines;
 }
 
+void get_cust_tag(char custom_file_name[],char tag[])
+{
+    int i,j;
+    char *z;
+
+    strcpy(tag,"CUSTOM");
+    j = 0;
+    for (i=0;custom_file_name[i];i++)
+    {
+        if ((custom_file_name[i] == '/') ||   // linux 
+            (custom_file_name[i] == '\\')  )  // windows 
+        {
+            j = i; // last path separator
+        }
+    }
+    strcpy(tag,&custom_file_name[j+1]);
+
+    z = strstr(tag,".gmt");
+    if (z) *z = (char)0;
+    z = strstr(tag,".GMT");
+    if (z) *z = (char)0;
+    return;
+}
+
 // #define MAX_CUST_FILES 20
 //     char *files[MAX_CUST_FILES];
 
@@ -3892,6 +3933,7 @@ void add_one_custom_file(char custom_file[] ,struct used_path_type *u, unsigned 
     char s[100000];
     char tmps[5120];
     char custname[5120];
+    char tag[5120];
     char custacc[5120];
     unsigned int ui;
     FILE *fp;
@@ -3904,10 +3946,14 @@ void add_one_custom_file(char custom_file[] ,struct used_path_type *u, unsigned 
     int this_cust_pw_cnt = 0;
     unsigned int prev;
     unsigned int *this_egids = (unsigned int *)0;
+    int cnt_badgenes_in_cust = 0;
 
 #if 0
-fprintf(stderr,"rpf **** xxx in add_one_custom_file \"%s\"\n",custom_file); 
+fprintf(stderr,"abcdef add_one_custom_file \"%s\"\n",custom_file); 
 #endif
+
+    tag[0] = (char)0;
+    get_cust_tag(custom_file,tag);
 
 #define MAXUGENES 40000
     if (tmpugenes) { free(tmpugenes); tmpugenes = (unsigned int *)0; }
@@ -3918,11 +3964,11 @@ fprintf(stderr,"rpf **** xxx in add_one_custom_file \"%s\"\n",custom_file);
     if (!fp) { fprintf(stderr,"NOTE: can not open \"%s\" - ignoring\n",custom_file); fflush(stderr); }
     else
     {
-// fprintf(stderr,"rpf **** xxx in add_one_custom_file \"%s\" here 1\n",custom_file); 
+// fprintf(stderr,"in add_one_custom_file \"%s\" here 1\n",custom_file); 
         while ( fgets(s, sizeof(s)-2, fp) ) // for each line of custom file
         {
             linecnt++;
-// fprintf(stderr,"rpf **** xxx in add_one_custom_file \"%s\" here 1.1, linecnt=%d, used_index=%d\n",
+// fprintf(stderr,"in add_one_custom_file \"%s\" here 1.1, linecnt=%d, used_index=%d\n",
 // custom_file,linecnt,*used_index); 
 
             for (k=0 ; s[k] ; k++) { if ((s[k] == '\n')||(s[k] == '\r')) s[k] = (char)0; } // strip newline
@@ -3963,7 +4009,13 @@ fprintf(stderr,"rpf **** xxx in add_one_custom_file \"%s\"\n",custom_file);
 // fprintf(stderr,"xxx rpf ui=%u tmps=[%s]\n",ui,tmps) ;   fflush(NULL); 
                            if (ui == (unsigned int)UINT_MAX)
                            {
-                               fprintf(stderr,"Note: invalid gene \"%s\" in custom pathway file.\n",tmps);  
+// xxx rpf yyy abcdef 
+
+                               cnt_badgenes_in_cust++;
+                               if (cnt_badgenes_in_cust < 4)
+                                    fprintf(stderr,"Note: invalid gene \"%s\" in custom pathway file.\n",tmps);  
+                               else if (cnt_badgenes_in_cust == 5)
+                                    fprintf(stderr,"Note: invalid gene \"%s\" in custom pathway file.  Only printing first 4 genes.\n",tmps);  
                            }
                            else
                            {
@@ -4013,8 +4065,9 @@ fprintf(stderr,"rpf **** xxx in add_one_custom_file \"%s\"\n",custom_file);
                 }
                 prev = ui;
             }
+            uptr->custom_category_name = strdup(tag);  // remember to free this
             uptr->acc = strdup(custacc);  // remember to free this
-//  fprintf(stderr,"xxx rpf set custacc to %s\n",uptr->acc); 
+// fprintf(stderr,"abcdef rpf set custacc to %s, set custom_categeroy_name to %s\n",uptr->acc,uptr->custom_category_name); 
             uptr->name = strdup(custname); // remember to free this
             uptr->egids = this_egids;      // remember to free this
             uptr->numgenes = uptr->numfixedgenes = this_cust_pw_cnt;
@@ -4025,8 +4078,9 @@ fprintf(stderr,"rpf **** xxx in add_one_custom_file \"%s\"\n",custom_file);
 // fprintf(stderr,"rpf adding used index = %d\n",*used_index);
             *(used_index) = *(used_index) + 1;
         }
-// fprintf(stderr,"rpf **** xxx in add_one_custom_file \"%s\" here 2\n",custom_file); 
+// fprintf(stderr,"in add_one_custom_file \"%s\" here 2\n",custom_file); 
     }
+
     if (fp ) { fclose(fp); fp = (FILE *)0; }
     if (tmpugenes) { free(tmpugenes); tmpugenes = (unsigned int *)0; }
     return;
@@ -4041,7 +4095,7 @@ void add_custom_files(char custom_file[], struct used_path_type *u, unsigned int
     int i,j;
     int ch = 0;
     
-//  fprintf(stderr,"xxx rpf in add_custom_files , custom_file=\"%s\"\n",custom_file); 
+// fprintf(stderr,"abcdef in add_custom_files , custom_file=\"%s\"\n",custom_file); 
     i = j = 0;
     t[0] = (char)0;
     while (1)
@@ -4049,9 +4103,9 @@ void add_custom_files(char custom_file[], struct used_path_type *u, unsigned int
         ch = *(custom_file+i);   // custom_files can be a list of files
         if ((ch == ',') || (ch == (char)0))
         { 
-// fprintf(stderr,"in xxx rpf add_custom_files(), file= %s, before add_one_custom_file, used_index[ptr]=%d\n",t,*used_index); 
+// fprintf(stderr,"abcdef in xxx rpf add_custom_files(), file= %s, before add_one_custom_file, used_index[ptr]=%d\n",t,*used_index); 
             add_one_custom_file(t,u,used_index,gmtfld2, user_universe_genes,universe_cnt);
-// fprintf(stderr,"in xxx rpf add_custom_files, file= %s, after add_one_custom_file, used_index[ptr]=%d\n",t,*used_index); 
+// fprintf(stderr,"abcdef in xxx rpf add_custom_files, file= %s, after add_one_custom_file, used_index[ptr]=%d\n",t,*used_index); 
             if (ch == 0) 
                 break;
             j = 0;
@@ -4223,6 +4277,7 @@ unsigned int prev;
         uptr->numfixedgenes = newcnt;
         uptr->genehits = (unsigned int *)malloc(sizeof(unsigned int)*newcnt);
         uptr->category = pws[i].category;
+        uptr->custom_category_name = (char *)0;
         uptr->acc  = strdup(pws[i].acc);       // can't just assign (?)  . because need to free if custom
         uptr->name = strdup(pws[i].name);      // can't just assign
         uptr->numgenes = pws[i].numgenes;
@@ -4245,6 +4300,8 @@ unsigned int prev;
         kust = (mycustompw + i);
         uptr->acc = strdup(kust->name);
         uptr->name = strdup(kust->optional);
+        uptr->custom_category_name = strdup(kust->optional);
+
         this_egids = (unsigned int *)malloc(sizeof(unsigned int) * kust->numgenes);
         for (j=0 ; j<kust->numgenes ; j++)   // for each gene in a custom pathway
         {
@@ -4641,6 +4698,7 @@ d=u-list
            if (uptr->egids)    { free(uptr->egids);    uptr->egids = (unsigned int *)0; }
            if (uptr->acc)      { free(uptr->acc);      uptr->acc = (char *)0; }
            if (uptr->name)     { free(uptr->name);     uptr->name = (char *)0; }
+           if (uptr->custom_category_name)  { free(uptr->custom_category_name); uptr->custom_category_name = (char *)0; }
         }
         free(u);
     }
@@ -4780,4 +4838,6 @@ C – total DEG count - number of hits
 D – number of hits
 Odds_ratio              odds ratio
 Sum_of_pathways         Sum of unique pathways where pathway genes are also found
+
 */
+

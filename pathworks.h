@@ -15,10 +15,6 @@
 #define CALC_OPTION_GPCC4 6
 
 #define PERMUTE_DEFAULT_LOW 5000
-
-    // #define MAXBSID 25000
-    // last count: 24376  pathworks.txt
-    //
 #define MAXBSIDPOSSIBLE 851568   
      // for pwharvest
 
@@ -137,6 +133,12 @@ struct genelisttype // used by harvest programs
     struct genelisttype *n;
 };
 
+struct raw_genelisttype // used by harvest programs 
+{
+    char *raw; // raw gene name 
+    struct raw_genelisttype *n;
+};
+
 struct bstype // biosystems id and info - input into this array  -- used by harvest programs 
 {
     int bsid;
@@ -150,7 +152,8 @@ struct bstype // biosystems id and info - input into this array  -- used by harv
     int redundant;       // flag for checking to see if this pathway is duplicated by another pathway 
 // next two fields get values from other file
     int numgenes;       // "count of" in next line of code line (i.e. number of genes)
-    struct genelisttype *geneslinkedlist; // a linked list
+    struct genelisttype *geneslinkedlist;     // a linked list of FINAL genes
+    struct raw_genelisttype *raw_genes_linkedlist; // a linked list of raw genes
 };
 
 
@@ -162,7 +165,7 @@ struct hugo_type
 };
 
 struct genetype // from ncbi
-{                              /// this is only used in pwharvest, l2p uses bingenetype
+{   // this is (may) only used in pwharvest, l2p uses bingenetype
     int geneid;
     char *hugo;
     char *ensembl;

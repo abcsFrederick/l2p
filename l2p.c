@@ -3752,7 +3752,7 @@ unsigned int *get_used_universe(struct used_path_type *u, unsigned int num_used,
         return (unsigned int *)0 ;
     }
 
-    maxelems = numpwgenes * 2;
+    maxelems = numpwgenes * 3; // rpf 7/11/2024 was "* 2" 
     sz = (maxelems * sizeof(unsigned int)); //  maximum possible number of genes
     tempverse = malloc(sz);
     if (!tempverse)
@@ -3770,7 +3770,7 @@ unsigned int *get_used_universe(struct used_path_type *u, unsigned int num_used,
             k++;
             if (k >= maxelems)
             {
-                fprintf(stderr,"in get_used_universe ERROR i=%d k=%d\n",i,k);  fflush(stderr);
+                fprintf(stderr,"in get_used_universe ERROR i=%d k=%d maxelems=%d\n",i,k,maxelems);  fflush(stderr);
                 exit(0);
             }
         }

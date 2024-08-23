@@ -48,7 +48,6 @@ conda install r-l2p-0.0_14-r41h9bf148f_1.tar.bz2
 conda install r-l2psupp-0.0_14-r41_0.tar.bz
 
 ```
-
 > _**Please Note:**_ It is assumed [R](https://cran.r-project.org/doc/manuals/R-admin.html) is installed on the target system. 
 
 ## Usage

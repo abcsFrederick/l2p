@@ -1,7 +1,9 @@
 # l2p
 
 [![DOI](https://zenodo.org/badge/164483194.svg)](https://zenodo.org/badge/latestdoi/164483194)
-[![GitHub releases](https://img.shields.io/github/release/CCBR/l2p)](https://github.com/CCBR/l2p/releases) [![GitHub issues](https://img.shields.io/github/issues/CCBR/l2p)](https://github.com/CCBR/l2p/issues) [![GitHub license](https://img.shields.io/github/license/CCBR/l2p)](https://github.com/CCBR/l2p/blob/master/LICENSE)
+[![issues](https://img.shields.io/github/issues/CCBR/l2p)](https://github.com/CCBR/l2p/issues) 
+[![license](https://img.shields.io/github/license/CCBR/l2p)](https://github.com/CCBR/l2p/blob/master/LICENSE)
+[![release](https://img.shields.io/github/release/CCBR/l2p?color=blue&label=latest%20release)](https://github.com/CCBR/l2p/releases/latest) 
 
 The beta web version is here: https://ccbr.github.io/l2p/ . ( You can copy/paste a whole paper in to see an instant pathway analysis. ).  This is a single page webassembly web application.
 

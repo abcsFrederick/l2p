@@ -26,7 +26,7 @@ wget https://github.com/CCBR/l2p/raw/master/l2p_0.0-14.tar.gz
 R CMD INSTALL l2p_0.0-14.tar.gz
 # install l2psupp ( "l2p supplemental")
 wget https://github.com/CCBR/l2p/raw/master/l2psupp_0.0-14.tar.gz
-# Install as a site package ZZ
+# Install as a site package  
 R CMD INSTALL l2psupp_0.0-14.tar.gz
 ```
  
